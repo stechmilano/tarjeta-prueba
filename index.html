@@ -377,11 +377,13 @@ function valorarHtml(){
   const v=tarjeta&&tarjeta.pendValorar;if(!v)return '';const s=SALONES.find(x=>x.id===v.s)||salon(),n=v.n||0;
   const stars=[1,2,3,4,5].map(i=>`<button class="star ${i<=n?'on':''}" data-estrella="${i}" aria-label="${i} estrellas">★</button>`).join('');
   let after='';
-  if(n>=4)after=`<p style="margin:10px 0 6px;font-weight:700">¡Gracias! Nos ayudarías mucho contándolo en Google.</p><a class="btn" href="${resenaLink(s)}" target="_blank" rel="noopener" data-resena="1">Dejar reseña en Google</a><p class="empty" style="font-size:13px;margin:6px 0 0">Se abre la ficha de ${esc(s.nombre)}; solo tienes que marcar las estrellas y, si quieres, escribir unas palabras.</p>`;
+  const yaG=tarjeta.resenaGoogle&&tarjeta.resenaGoogle[s.id];
+  if(n>=4&&yaG)after=`<p style="margin:10px 0 6px;font-weight:700">¡Gracias! Nos alegra mucho.</p><button class="btn sec" data-vcerrar="1">Cerrar</button>`;
+  else if(n>=4)after=`<p style="margin:10px 0 6px;font-weight:700">¡Gracias! Nos ayudarías mucho contándolo en Google.</p><a class="btn" href="${resenaLink(s)}" target="_blank" rel="noopener" data-resena="1">Dejar reseña en Google</a><p class="empty" style="font-size:13px;margin:6px 0 0">Se abre la ficha de ${esc(s.nombre)}; solo tienes que marcar las estrellas y, si quieres, escribir unas palabras.</p><button class="back" data-yag="1">Ya os he valorado en Google</button>`;
   else if(n>=1)after=`<p style="margin:10px 0 6px;font-weight:700">Sentimos que no haya sido perfecto. ¿Qué podemos mejorar?</p><textarea id="vcom" rows="3" style="width:100%;font:16px Manrope,sans-serif;border-radius:12px;border:1px solid var(--line);padding:10px;background:var(--app);color:var(--ink)" placeholder="Cuéntanos (opcional)"></textarea>
     <button class="btn" data-vguardar="1" style="margin-top:8px">Enviar mi opinión</button>
     <a class="btn sec" href="${waDuda(s,'Hola, quería comentaros mi visita en Marco Aldany '+s.nombre)}" target="_blank" rel="noopener" style="margin-top:8px">Hablar con el salón por WhatsApp</a>
-    <p class="empty" style="font-size:13px;margin:6px 0 0">También puedes <a href="${resenaLink(s)}" target="_blank" rel="noopener">dejar tu reseña en Google</a>.</p>`;
+    ${yaG?'':`<p class="empty" style="font-size:13px;margin:6px 0 0">También puedes <a href="${resenaLink(s)}" target="_blank" rel="noopener" data-resena="1">dejar tu reseña en Google</a>.</p>`}`;
   return `<div class="lcard p pop" style="background:var(--app);color:var(--ink);border:2px solid var(--ac)"><div class="name" style="color:var(--ac)">${fecha(v.f)} · ${esc(s.nombre)}</div><div class="title">¿Qué tal tu visita?</div>
    <div class="stars">${stars}</div>${after}${n?'':'<button class="back" data-vcerrar="1">Ahora no</button>'}</div>`}
 function sellosHtml(){const n=tarjeta.sellos||0,lleno=n>=10;
@@ -521,7 +523,7 @@ salon(){
    <a class="btn sec" href="${waLink(s)}" target="_blank" rel="noopener">Reservar por WhatsApp · 665 122 755</a>
    <a class="btn sec" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Cómo llegar</a>
    <a class="btn sec" href="${waDuda(s)}" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a>
-   <a class="btn sec" href="${resenaLink(s)}" target="_blank" rel="noopener">Déjanos una reseña en Google</a>
+   ${tarjeta&&tarjeta.resenaGoogle&&tarjeta.resenaGoogle[s.id]?'':`<a class="btn sec" href="${resenaLink(s)}" target="_blank" rel="noopener">Déjanos una reseña en Google</a>`}
    <a class="btn sec" href="https://www.instagram.com/${s.ig}/" target="_blank" rel="noopener">Síguenos en Instagram · @${s.ig}</a>
   </div>`}
 };
@@ -582,10 +584,11 @@ function render(){
 }
 
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-estrella],[data-vguardar],[data-vcerrar],[data-resena],[data-notif],[data-instalar],[data-condiciones],[data-politica],[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
+  const b=e.target.closest('[data-yag],[data-estrella],[data-vguardar],[data-vcerrar],[data-resena],[data-notif],[data-instalar],[data-condiciones],[data-politica],[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
   const d=b.dataset;
   if(d.estrella){tarjeta.pendValorar.n=+d.estrella;(tarjeta.valoraciones=tarjeta.valoraciones||[]).push({f:tarjeta.pendValorar.f,s:tarjeta.pendValorar.s,n:+d.estrella});store.set('tarjeta',tarjeta);render();return}
   if(d.vguardar){const v=tarjeta.pendValorar,com=($('vcom')||{}).value||'';const last=(tarjeta.valoraciones||[]).slice(-1)[0];if(last)last.com=com;tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);toast('Gracias. El salón leerá tu opinión.');render();return}
+  if(d.yag||d.resena){const v=tarjeta.pendValorar;if(v){(tarjeta.resenaGoogle=tarjeta.resenaGoogle||{})[v.s]=HOY()}store.set('tarjeta',tarjeta);if(d.yag){tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);toast('¡Gracias! No te lo volveremos a pedir');render();return}}
   if(d.resena){setTimeout(()=>{tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);render()},400);return}
   if(d.vcerrar){tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);render();return}
   if(d.notif){pedirPermiso();return}
