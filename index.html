@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App clientes salones</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: cálida y con glamour de salón, nunca recargada.
+   IDEA: la cartera del cliente: sus tarjetas Week y Color como tarjetas de verdad que se ganan volviendo.
+   PICTURE: tarjetas con degradado, el descuento enorme y la cuenta atrás para mantenerlo.
+   COLOUR and TYPE: blanco, tinta casi negra, frambuesa #9b1b4a; Week en ciruela noche, Color en coral-rosa; DM Serif Display + Manrope.
+   LAYOUT: móvil a pantalla completa en teléfonos; en ordenador, marco de móvil con notas al lado. */
+:root{color-scheme:light dark;--bg:light-dark(#f3eef0,#100d11);--app:light-dark(#ffffff,#1a161b);--ink:light-dark(#1b1619,#f3eef1);--mut:light-dark(#6d6268,#b3a8ae);--ac:light-dark(#9b1b4a,#ff7aa6);--acInk:light-dark(#fff,#1b1619);--soft:light-dark(#f8e9ee,#2e2027);--line:light-dark(#ece3e7,#352d33);
+--week:linear-gradient(135deg,#2a1033 0%,#5b1f56 55%,#9b1b4a 120%);--color:linear-gradient(135deg,#c2185b 0%,#ec5a6e 55%,#f59a6b 110%);--pts:linear-gradient(135deg,#3a2f36 0%,#6b5a63 100%)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;overflow-x:clip}
+.wrap{display:flex;gap:48px;justify-content:center;align-items:flex-start;padding:32px 16px}
+.phone{width:400px;max-width:100%;height:840px;max-height:calc(100vh - 64px);background:var(--app);border-radius:38px;box-shadow:0 0 0 10px #1b1619,0 30px 60px -20px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.notes{max-width:340px;padding-top:24px}
+.notes h1{font:400 40px/1.05 'DM Serif Display',serif;margin:0 0 16px;text-wrap:balance}
+.notes p{color:var(--mut);margin:0 0 12px}
+@media(max-width:820px){.notes{display:none}.wrap{padding:0}.phone{height:100vh;height:100dvh;max-height:none;border-radius:0;box-shadow:none;width:100%}}
+header{padding:16px 20px 10px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.brand{font:400 26px/1 'DM Serif Display',serif}
+select{font:700 14px Manrope,sans-serif;color:var(--ac);background:var(--soft);border:0;border-radius:999px;padding:8px 12px;min-height:40px;max-width:58%}
+.demo{font-size:13px;color:var(--mut);padding:0 20px 8px}
+main{flex:1;overflow-y:auto;padding:6px 20px 28px}
+h2{font:400 30px/1.1 'DM Serif Display',serif;margin:8px 0 14px}
+h3{font-size:16px;margin:22px 0 10px}
+nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line);background:var(--app)}
+nav button{background:none;border:0;color:var(--mut);font:700 12.5px Manrope,sans-serif;padding:9px 0 14px;min-height:58px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--ac)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border-radius:16px;border:0;background:var(--ac);color:var(--acInk);font:800 16px Manrope,sans-serif;cursor:pointer;text-decoration:none;width:100%}
+.btn.sec{background:var(--soft);color:var(--ink)}
+.btn.light{background:#fff;color:#2a1033}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.hero{border-radius:24px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden;background:var(--week);color:#fff}
+.hero p{margin:0 0 16px;opacity:.85;position:relative}
+.hero b{font:400 28px/1.1 'DM Serif Display',serif;display:block;margin-bottom:6px;position:relative}
+.hero .btn{position:relative}
+.deco{position:absolute;right:-30px;top:-20px;width:190px;height:190px;opacity:.35;pointer-events:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{border:0;border-radius:18px;padding:14px;text-align:left;font:700 15px Manrope,sans-serif;color:#fff;cursor:pointer;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none}
+.tile .pct{font:400 34px/1 'DM Serif Display',serif}
+.tile small{display:block;font-weight:600;font-size:13px;opacity:.9}
+.tile.w{background:var(--week)}.tile.c{background:var(--color)}
+.tile.plain{background:var(--soft);color:var(--ink)}.tile.plain small{color:var(--mut);opacity:1}
+.list{display:grid;gap:8px}
+.opt{display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%;text-align:left;background:var(--app);border:1px solid var(--line);border-radius:16px;padding:12px 14px;font:700 15px Manrope,sans-serif;color:var(--ink);cursor:pointer;min-height:58px}
+.opt small{display:block;color:var(--mut);font-weight:500;font-size:13px}
+.opt .pr{white-space:nowrap;color:var(--ac);text-align:right}
+.opt .pr s{color:var(--mut);font-weight:500;font-size:13px;display:block}
+.badge{display:inline-block;font-size:12px;font-weight:800;color:#fff;border-radius:999px;padding:2px 8px;margin-top:4px}
+.badge.w{background:#5b1f56}.badge.c{background:#d63864}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.chip{flex:none;scroll-snap-align:start;border:1px solid var(--line);background:var(--app);color:var(--ink);border-radius:14px;padding:8px 12px;font:700 14px Manrope,sans-serif;cursor:pointer;min-height:44px;text-align:center}
+.chip small{display:block;font-weight:500;font-size:13px;color:var(--mut)}
+.chip.sel{background:var(--ac);color:var(--acInk);border-color:var(--ac)}.chip.sel small{color:inherit}
+.times{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.times .chip{width:100%}
+.back{background:none;border:0;color:var(--ac);font:700 14px Manrope,sans-serif;padding:6px 0;cursor:pointer;min-height:44px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 4px}
+input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--app);color:var(--ink);min-height:48px;max-width:none}
+.sum{background:var(--soft);border-radius:16px;padding:14px;margin:12px 0}
+.sum div{display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:2px 0}
+.sum span:last-child{font-weight:800;text-align:right}
+.sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:17px}
+.card{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.card .row{display:flex;gap:8px;margin-top:10px}
+.card .row .btn{min-height:44px;font-size:14px}
+.lcard{border-radius:24px;padding:20px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 14px 30px -16px rgba(80,10,50,.6)}
+.lcard.w{background:var(--week)}.lcard.c{background:var(--color)}.lcard.p{background:var(--pts)}
+.lcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative}
+.lcard .name{font:800 13px Manrope,sans-serif;opacity:.85}
+.lcard .title{font:400 26px/1 'DM Serif Display',serif;margin-top:2px}
+.lcard .pct{font:400 clamp(56px,17vw,72px)/.9 'DM Serif Display',serif;text-align:right}
+.lcard .pct small{display:block;font:700 12px Manrope,sans-serif;opacity:.85;margin-top:6px}
+.lcard .msg{margin:14px 0 12px;font-size:15px;position:relative}
+.lcard .msg b{font-weight:800}
+.track{display:grid;gap:5px;position:relative}
+.track .dots{display:grid;gap:5px}
+.track .dot{height:30px;border-radius:9px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:11px;font-weight:700}
+.track .dot.on{background:#fff;color:#5b1f56}
+.track .dot.now{outline:2px dashed rgba(255,255,255,.8);outline-offset:-2px}
+.track .lab{font-size:12px;opacity:.8}
+.lcard .rules{font-size:13px;opacity:.9;margin:12px 0 0;padding-left:16px}
+.qrbox{display:flex;gap:14px;align-items:center;background:var(--soft);border-radius:20px;padding:14px;margin-bottom:14px}
+.qr{background:#fff;border-radius:12px;padding:6px;width:96px;height:96px;flex:none;display:grid;place-items:center;color:#1b1619;font-size:12px;text-align:center}
+.qr svg{width:100%;height:100%}
+.qrbox b{font-size:18px;letter-spacing:.04em}
+.qrbox p{margin:2px 0 0;color:var(--mut);font-size:14px}
+.mov{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.mov small{display:block;color:var(--mut);font-size:13px}
+.mov b{white-space:nowrap;color:var(--ac)}
+.staff{border:2px dashed var(--ac);border-radius:18px;padding:16px;margin-top:6px}
+.chk{display:flex;gap:10px;align-items:center;margin:14px 0 4px;font-weight:700}.chk input{width:22px;height:22px;min-height:0}
+.promo{border-radius:20px;padding:18px;margin-bottom:12px;color:#fff}
+.promo b{font:400 24px/1.15 'DM Serif Display',serif;display:block;margin-bottom:4px}
+.promo p{margin:0;opacity:.9;font-size:15px}
+.tag{display:inline-block;font-size:12px;font-weight:800;background:rgba(255,255,255,.2);border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.info div{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.links{display:grid;gap:10px;margin-top:16px}
+.empty{color:var(--mut);font-size:15px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--app);padding:12px 18px;border-radius:12px;font-weight:700;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;z-index:5}
+.toast.on{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:4}
+.modal.on{display:flex}
+.modal>div{background:var(--app);border-radius:20px;padding:20px;max-width:340px;width:100%}
+.modal .row{display:flex;gap:8px;margin-top:14px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:6}
+.sheet.on{display:flex}
+.sheet>div{background:var(--app);border-radius:24px 24px 0 0;padding:20px 20px 28px;max-width:420px;width:100%;max-height:92vh;overflow-y:auto}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:12px;padding:4px;margin:10px 0 14px}
+.seg button{border:0;background:none;border-radius:9px;min-height:40px;font:800 14px Manrope,sans-serif;color:var(--mut);cursor:pointer}
+.seg button.on{background:var(--app);color:var(--ac)}
+.steps{margin:0;padding:0;list-style:none;counter-reset:n}
+.steps li{counter-increment:n;display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.steps li::before{content:counter(n);flex:none;width:28px;height:28px;border-radius:50%;background:var(--ac);color:var(--acInk);display:grid;place-items:center;font-weight:800;font-size:14px}
+.ico{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--soft);vertical-align:middle;margin:0 2px}
+.ico svg{width:16px;height:16px}
+.wbtns{display:grid;gap:8px;margin:14px 0}
+.wbtn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;border-radius:14px;border:0;background:#000;color:#fff;font:700 15px Manrope,sans-serif;cursor:pointer;width:100%}
+.wbtn svg{width:22px;height:22px}
+.pass{border-radius:18px;overflow:hidden;background:var(--week);color:#fff;box-shadow:0 18px 40px -18px rgba(0,0,0,.6);margin:6px 0 12px}
+.pass .ph{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}
+.pass .ph b{font:400 20px 'DM Serif Display',serif}
+.pass .pf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:4px 16px 14px}
+.pass .pf small{display:block;font-size:11px;opacity:.75;font-weight:700}
+.pass .pf span{font-weight:800;font-size:17px}
+.pass .pq{background:#fff;padding:14px;display:grid;place-items:center;color:#1b1619;font-size:12px;font-weight:700;gap:4px}
+.pass .pq .qr{width:120px;height:120px;padding:0}
+.pop{animation:pop .5s ease-out}
+@keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}.pop{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="phone">
+    <header>
+      <div class="brand">Marco Aldany</div>
+      <select id="salon" aria-label="Elige tu salón"></select>
+    </header>
+    <div class="demo">Versión de prueba · precios y huecos de ejemplo, sin conectar a Wilapp</div>
+    <main id="main"></main>
+    <nav id="nav"></nav>
+  </div>
+  <div class="notes">
+    <h1>Tus tarjetas Week y Color, en el móvil del cliente</h1>
+    <p>El cliente ve en todo momento qué descuento tiene y hasta qué día lo mantiene. Eso es lo que le hace volver.</p>
+    <p>Prueba: mira «Tarjetas», pide una cita de peinado o color (sale el precio con descuento) y registra un cobro desde «Recepción».</p>
+    <p>Semanas de lunes a domingo y meses naturales: cuenta la semana o el mes de la visita, no el día exacto.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="sheet" id="sheet"><div id="sheetc"></div></div>
+<div class="modal" id="modal"><div><p id="mtext"></p><div class="row"><button class="btn sec" id="mno">No</button><button class="btn" id="myes">Sí, anular</button></div></div></div>
+<script>
+{
+const SALONES=[
+ {id:'vv',nombre:'Villaviciosa de Odón',ig:'marcoaldany_villaviciosa',barbero:'Alexis',maps:'Marco Aldany Villaviciosa de Odón'},
+ {id:'hc',nombre:'Heron City · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Hamza',maps:'Marco Aldany Heron City Las Rozas'},
+ {id:'eu',nombre:'Európolis · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Martín',maps:'Marco Aldany Európolis Las Rozas'}];
+// tipo: 'week' = entra en la tarjeta Week, 'color' = tarjeta Color
+const SERVICIOS=[
+ {f:'Peinados',n:'Lavar + peinar · pelo corto',min:30,p:16,tipo:'week'},
+ {f:'Peinados',n:'Lavar + peinar · medio/largo',min:40,p:19,tipo:'week'},
+ {f:'Peinados',n:'Lavar + peinar con ondas',min:45,p:23,tipo:'week'},
+ {f:'Color',n:'Tinte raíz',min:90,p:35,tipo:'color',nota:'Incluye exposición'},
+ {f:'Color',n:'Tinte completo',min:105,p:45,tipo:'color',nota:'Incluye exposición'},
+ {f:'Color',n:'Mechas balayage',min:150,p:75,tipo:'color'},
+ {f:'Color',n:'Matiz / gloss',min:30,p:20,tipo:'color'},
+ {f:'Cortes',n:'Lavar + cortar + peinar · corto',min:45,p:30},
+ {f:'Cortes',n:'Lavar + acondicionador + cortar + peinar · medio/largo',min:60,p:36},
+ {f:'Tratamientos',n:'Tratamiento Wella',min:15,p:15},
+ {f:'Caballero',n:'Corte caballero',min:30,p:15,barb:1},
+ {f:'Caballero',n:'Degradado',min:30,p:17,barb:1},
+ {f:'Caballero',n:'Corte + barba',min:30,p:22,barb:1}];
+const FESTIVOS=['2026-12-08','2026-12-25','2027-01-01','2027-01-06'];
+const DIAS=['dom','lun','mar','mié','jue','vie','sáb'];
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const ICON={
+ inicio:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+ cita:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ tarjetas:'<rect x="2" y="7" width="16" height="11" rx="2"/><path d="M6 4h14a2 2 0 0 1 2 2v9"/>',
+ promos:'<path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/>',
+ salon:'<path d="M12 21s-7-6-7-12a7 7 0 0 1 14 0c0 6-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>'};
+const TABS=[['inicio','Inicio'],['cita','Cita'],['tarjetas','Tarjetas'],['promos','Promos'],['salon','Salón']];
+const DECO='<svg class="deco" viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="2"><path d="M20 180C60 120 40 60 100 20M45 185C85 125 65 65 125 25M70 190C110 130 90 70 150 30M95 195C135 135 115 75 175 35"/></svg>';
+
+const store={get(k,d){try{const v=localStorage.getItem('ma3_'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('ma3_'+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dt=s=>new Date(s+'T12:00');
+const fecha=s=>{const d=dt(s);return DIAS[d.getDay()]+' '+d.getDate()+' '+MESES[d.getMonth()]};
+const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const eur=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',')+' €';
+const HOY=()=>iso(new Date());
+
+/* ===== Reglas de las tarjetas =====
+   Week: misma semana o la anterior = 20 %; hace 2 semanas = 10 %; más = 0 %.
+   Color: mismo mes o el anterior = 20 %; hace 2 meses = 10 %; más = 0 %.
+   Semanas de lunes a domingo; meses naturales. */
+const LUNES0=Date.UTC(1970,0,5);
+const semIdx=s=>{const d=dt(s);return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-LUNES0)/(7*864e5))};
+const mesIdx=s=>{const d=dt(s);return d.getFullYear()*12+d.getMonth()};
+const lunesDe=i=>new Date(LUNES0+i*7*864e5+12*36e5);
+const TARJ={
+ week:{nombre:'Tarjeta Week',sub:'Peinados',idx:semIdx,ud:'esta semana',
+   fin:i=>{const d=lunesDe(i);d.setUTCDate(d.getUTCDate()+5);return 'sábado '+d.getUTCDate()+' de '+MESL[d.getUTCMonth()]}},
+ color:{nombre:'Tarjeta Color',sub:'Coloración',idx:mesIdx,ud:'este mes',
+   fin:i=>{const y=Math.floor(i/12),m=i%12,d=new Date(y,m+1,0);return d.getDate()+' de '+MESL[m]}}};
+function estado(tipo){
+  const T=TARJ[tipo],vis=tarjeta?tarjeta[tipo]:[];if(!vis.length)return {pct:0,ult:null};
+  const ult=vis.slice().sort().pop(),u=T.idx(ult),hoy=T.idx(HOY()),dif=hoy-u;
+  return {pct:dif<=1?20:dif===2?10:0,ult,u,dif,hasta20:T.fin(u+1),hasta10:T.fin(u+2)};
+}
+
+let tarjeta=store.get('tarjeta',null);
+const nuevoCod=()=>'MA'+String(Math.floor(100000+Math.random()*899999));
+function demoHistorial(){
+  const h=new Date(),a=n=>{const d=new Date(h);d.setDate(d.getDate()-n);return iso(d)};
+  const m=n=>iso(new Date(h.getFullYear(),h.getMonth()-n,10));
+  tarjeta.week=[a(7),a(14),a(28),a(35)];tarjeta.color=[m(1),m(2),m(3)];tarjeta.puntos=180;store.set('tarjeta',tarjeta)}
+let citas=store.get('citas',[]);
+let st={tab:'inicio',salon:store.get('salon','eu'),paso:'familia',fam:null,serv:null,dia:null,hora:null};
+const $=id=>document.getElementById(id);
+const salon=()=>SALONES.find(s=>s.id===st.salon);
+
+$('salon').innerHTML=SALONES.map(s=>`<option value="${s.id}">${esc(s.nombre)}</option>`).join('');
+$('salon').value=st.salon;
+$('salon').onchange=e=>{st.salon=e.target.value;store.set('salon',st.salon);reset();render()};
+
+const SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 8l5-5 5 5M5 13v7h14v-7"/></svg>';
+const DOTS='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+const WAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14h2"/></svg>';
+let instSO=/iphone|ipad|mac/i.test(navigator.userAgent)?'ios':'android';
+function abrirSheet(html){$('sheetc').innerHTML=html;$('sheet').classList.add('on')}
+function cerrarSheet(){$('sheet').classList.remove('on')}
+function abrirInst(nueva){
+  const ios=instSO==='ios';
+  abrirSheet(`<h2 style="margin-top:0">${nueva?'¡Listo! Guárdala en tu móvil':'Tenla siempre a mano'}</h2>
+  <p class="empty">Así la abres con un toque, como cualquier app. No ocupa espacio ni hay que descargar nada.</p>
+  <div class="seg"><button class="${ios?'on':''}" data-so="ios">iPhone</button><button class="${ios?'':'on'}" data-so="android">Android</button></div>
+  <ol class="steps">${ios?`<li><span>Abre este enlace en <b>Safari</b>.</span></li><li><span>Pulsa <span class="ico">${SHARE}</span> <b>Compartir</b>, abajo en el centro.</span></li><li><span>Baja y elige <b>«Añadir a pantalla de inicio»</b>.</span></li><li><span>Pulsa <b>Añadir</b>. Ya tienes el icono de Marco Aldany.</span></li>`
+   :`<li><span>Abre este enlace en <b>Chrome</b>.</span></li><li><span>Pulsa <span class="ico">${DOTS}</span> <b>el menú</b>, arriba a la derecha.</span></li><li><span>Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.</span></li><li><span>Confirma. Ya tienes el icono de Marco Aldany.</span></li>`}</ol>
+  <p class="empty" style="margin-top:14px">O guárdala en la cartera de tu móvil:</p>
+  <div class="wbtns"><button class="wbtn" data-wallet="1">${WAL} Añadir a ${ios?'Apple Wallet':'Google Wallet'}</button></div>
+  <button class="btn sec" data-cerrar="1">Ahora no</button>`)}
+function abrirWallet(){
+  const ios=instSO==='ios',pc=tarjeta?pctHoy():0,nom=tarjeta&&tarjeta.nombre?tarjeta.nombre:'Cliente';
+  abrirSheet(`<h2 style="margin-top:0">Así queda en tu cartera</h2>
+  <div class="pass"><div class="ph"><b>Marco Aldany</b><span style="font-weight:800">${pc} %</span></div>
+   <div class="pf"><div><small>WEEK</small><span>${tarjeta?estado('week').pct:0} %</span></div><div><small>COLOR</small><span>${tarjeta?estado('color').pct:0} %</span></div><div><small>PUNTOS</small><span>${tarjeta?tarjeta.puntos:0}</span></div></div>
+   <div class="pf" style="grid-template-columns:1fr"><div><small>CLIENTE</small><span>${esc(nom)}</span></div></div>
+   <div class="pq"><div class="qr" id="qrw"></div>${tarjeta?tarjeta.cod:''}</div></div>
+  <p class="empty">Se actualiza sola cuando cambia tu descuento, y te avisa en la pantalla de bloqueo antes de perderlo.</p>
+  <div class="wbtns"><button class="wbtn" data-wok="1">${WAL} Añadir a ${ios?'Apple Wallet':'Google Wallet'}</button></div>
+  <p class="empty" style="font-size:13px">Versión de prueba: en la real, este botón la guarda en tu ${ios?'Apple Wallet':'Google Wallet'}.</p>
+  <button class="btn sec" data-cerrar="1">Cerrar</button>`);
+  const q=$('qrw');if(q&&tarjeta&&window.qrcode){try{const g=qrcode(0,'M');g.addData(tarjeta.cod);g.make();q.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}}
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2400)}
+function reset(){Object.assign(st,{paso:'familia',fam:null,serv:null,dia:null,hora:null,mover:null})}
+function go(tab){st.tab=tab;st.recep=false;if(tab==='cita')reset();render();$('main').scrollTop=0}
+
+function dias(){const out=[];const d=new Date();d.setHours(12);while(out.length<14){const k=iso(d);if(d.getDay()!==0&&!FESTIVOS.includes(k))out.push(k);d.setDate(d.getDate()+1)}return out}
+function huecos(dia,min){
+  const d=dt(dia),cierre=d.getDay()===6?16*60:21*60,ahora=new Date(),hoy=iso(ahora)===dia,res=[];
+  for(let m=9*60;m+min<=cierre;m+=30){
+    if(hoy&&m<=ahora.getHours()*60+ahora.getMinutes()+30)continue;
+    let h=0;for(const c of dia+st.salon+m)h=(h*31+c.charCodeAt(0))%997;
+    const ocupado=citas.some(c=>c.id!==st.mover&&c.salon===st.salon&&c.dia===dia&&c.ini<m+min&&m<c.ini+c.min);
+    if(h%3!==0&&!ocupado)res.push(m);
+  }return res}
+// descuento que tendría el cliente en una fecha concreta para un servicio
+function pctEn(serv,dia){
+  if(!tarjeta)return 0;let best=0;
+  for(const tipo of ['week','color']){const T=TARJ[tipo],vis=tarjeta[tipo].filter(v=>v<=dia);if(!vis.length)continue;
+    const dif=T.idx(dia)-T.idx(vis.sort().pop());best=Math.max(best,dif<=1?20:dif===2?10:0)}
+  return best}
+const pctHoy=()=>Math.max(estado('week').pct,estado('color').pct);
+function trackHtml(tipo){
+  const T=TARJ[tipo],hoy=T.idx(HOY()),n=tipo==='week'?8:6,set=new Set(tarjeta[tipo].map(T.idx));
+  const cells=Array.from({length:n},(_,k)=>{const i=hoy-n+1+k;let lab;
+    if(tipo==='week'){const d=lunesDe(i);lab=d.getUTCDate()+'/'+(d.getUTCMonth()+1)}else lab=MESES[i%12];
+    return `<div class="dot ${set.has(i)?'on':''} ${i===hoy?'now':''}">${lab}</div>`}).join('');
+  return `<div class="track"><div class="dots" style="grid-template-columns:repeat(${n},minmax(0,1fr))">${cells}</div><div class="lab">Tus ${tipo==='week'?'últimas 8 semanas':'últimos 6 meses'} · en blanco, las que viniste</div></div>`}
+
+function cardHtml(tipo){
+  const T=TARJ[tipo],e=estado(tipo);
+  let msg;
+  if(e.pct===20)msg=e.dif===0?`Ya has venido ${T.ud}. Vuelve antes del <b>${e.hasta20}</b> y mantienes el 20 %.`:`Tienes el 20 % ${T.ud}. Ven antes del <b>${e.hasta20}</b> para no perderlo.`;
+  else if(e.pct===10)msg=`Tienes el 10 % hasta el <b>${e.hasta10}</b>. Ven y vuelves a subir al 20 %.`;
+  else msg=`Ven ${T.ud} y activa tu tarjeta: desde tu próxima visita tendrás descuento.`;
+  return `<div class="lcard ${tipo==='week'?'w':'c'} pop">${DECO}
+   <div class="top"><div><div class="name">${T.sub}</div><div class="title">${T.nombre}</div></div><div class="pct">${e.pct} %<small>tu descuento ${tipo==='week'?'esta semana':'este mes'}</small></div></div>
+   <div class="msg">${msg}</div>${trackHtml(tipo)}
+   <ul class="rules">${tipo==='week'?'<li>Péinate cada semana: 20 % en todos tus servicios.</li><li>Cada 15 días: 10 %.</li>':'<li>Haz tu color cada mes: 20 % en todos tus servicios.</li><li>Cada 2 meses: 10 %.</li>'}<li>Cuenta ${tipo==='week'?'la semana':'el mes'}, no el día exacto. La visita se marca sola al pagar en el salón.</li></ul></div>`}
+
+const V={
+inicio(){
+  const prox=citas.filter(c=>c.dia>=HOY()).sort((a,b)=>(a.dia+hm(a.ini)).localeCompare(b.dia+hm(b.ini)))[0];
+  const w=estado('week'),c=estado('color');
+  const tiles=tarjeta?`<button class="tile w" data-go="tarjetas"><span class="pct">${w.pct} %</span><span>Week<small>${w.pct===20?'Hasta el '+w.hasta20.replace('sábado ','sáb '):w.pct?'Sube al 20 % viniendo':'Actívala esta semana'}</small></span></button>
+   <button class="tile c" data-go="tarjetas"><span class="pct">${c.pct} %</span><span>Color<small>${c.pct===20?'Hasta el '+c.hasta20:c.pct?'Sube al 20 % viniendo':'Actívala este mes'}</small></span></button>`
+   :`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Activa gratis tus tarjetas Week y Color<small>En todos tus servicios, por venir con frecuencia</small></span></button>`;
+  return `<div class="hero">${DECO}<b>${prox?'Tu próxima cita':'Tu momento de salón'}</b>
+  <p>${prox?esc(prox.serv)+' · '+fecha(prox.dia)+' a las '+hm(prox.ini)+' · '+esc(SALONES.find(s=>s.id===prox.salon).nombre):'Reserva en menos de un minuto y mira tu precio con descuento antes de confirmar.'}</p>
+  <button class="btn light" data-go="cita">${prox?'Ver mis citas':'Pedir cita'}</button></div>
+  <div class="grid2">
+   ${tiles}
+   <button class="tile plain" data-go="promos">Promociones<small>Calendario de adviento</small></button>
+   <button class="tile plain" data-go="salon">Tu salón<small>${esc(salon().nombre)}</small></button>
+  </div>`},
+cita(){
+  const mias=citas.filter(c=>c.dia>=HOY()).sort((a,b)=>(a.dia+hm(a.ini)).localeCompare(b.dia+hm(b.ini)));
+  if(st.paso==='familia'){
+    const fams=[...new Set(SERVICIOS.map(s=>s.f))];
+    const misHtml=mias.map(c=>`<div class="card"><b>${esc(c.serv)}</b><br><small class="empty">${fecha(c.dia)} · ${hm(c.ini)} · ${esc(SALONES.find(s=>s.id===c.salon).nombre)} · ${esc(c.prof)}${c.pct?' · '+c.pct+' % dto.':''}</small>
+    <div class="row"><button class="btn sec" data-cancel="${c.id}">Anular</button><button class="btn sec" data-mover="${c.id}">Cambiar hora</button></div></div>`).join('');
+    return `${mias.length?'<h2>Mis citas</h2>'+misHtml+'<h3>Pedir otra cita</h3>':'<h2>Pedir cita</h2>'}
+    <div class="list">${fams.map(f=>{const t=SERVICIOS.find(s=>s.f===f).tipo;return `<button class="opt" data-fam="${f}"><span>${f}${t?`<br><span class="badge ${t==='week'?'w':'c'}">Tarjeta ${t==='week'?'Week':'Color'}</span>`:''}</span><span class="pr">›</span></button>`}).join('')}</div>`}
+  if(st.paso==='servicio'){
+    return `<button class="back" data-paso="familia">‹ Volver</button><h2>${st.fam}</h2><div class="list">${SERVICIOS.filter(s=>s.f===st.fam).map(s=>{const pc=tarjeta?pctHoy():0;
+      return `<button class="opt" data-serv="${SERVICIOS.indexOf(s)}"><span>${s.n}<small>${s.min} min${s.nota?' · '+s.nota:''}${s.barb?' · con '+esc(salon().barbero)+', barbero':''}</small></span><span class="pr">${pc?`<s>${eur(s.p)}</s>${eur(s.p*(1-pc/100))}`:eur(s.p)}</span></button>`}).join('')}</div>
+      ${tarjeta&&pctHoy()?'<p class="empty">Precio con tu descuento de hoy. Al elegir día se recalcula según la semana o el mes de la cita.</p>':''}`}
+  if(st.paso==='hora'){
+    const s=SERVICIOS[st.serv],ds=dias();if(!st.dia)st.dia=ds[0];
+    const hs=huecos(st.dia,s.min),pc=pctEn(s,st.dia);
+    return `<button class="back" data-paso="servicio">‹ Volver</button><h2>¿Cuándo?</h2><p class="empty">${s.n} · ${s.min} min${tarjeta?` · <b>${pc} % con tus tarjetas ese día</b>`:''}</p>
+    <div class="chips">${ds.map(d=>{const x=dt(d);return `<button class="chip ${d===st.dia?'sel':''}" data-dia="${d}"><small>${DIAS[x.getDay()]}</small>${x.getDate()} ${MESES[x.getMonth()]}</button>`}).join('')}</div>
+    <h3>Horas libres</h3>${hs.length?`<div class="times">${hs.map(m=>`<button class="chip" data-hora="${m}">${hm(m)}</button>`).join('')}</div>`:'<p class="empty">Este día no quedan huecos. Prueba otro.</p>'}`}
+  if(st.paso==='datos'){
+    const s=SERVICIOS[st.serv],cli=store.get('cliente',{n:'',t:''}),pc=pctEn(s,st.dia);
+    return `<button class="back" data-paso="hora">‹ Volver</button><h2>Confirma tu cita</h2>
+    <div class="sum"><div><span>Salón</span><span>${esc(salon().nombre)}</span></div><div><span>Servicio</span><span>${s.n}</span></div>
+    <div><span>Día</span><span>${fecha(st.dia)}, ${hm(st.hora)}</span></div><div><span>Profesional</span><span>${s.barb?esc(salon().barbero):'Sin preferencia'}</span></div>
+    <div><span>Precio</span><span>${eur(s.p)}</span></div>${pc?`<div><span>Tu tarjeta Week / Color</span><span>− ${pc} %</span></div>`:''}
+    <div class="tot"><span>Pagarás</span><span>${eur(s.p*(1-pc/100))}</span></div></div>
+    <form id="f"><label for="nom">Nombre</label><input id="nom" autocomplete="name" required value="${esc(cli.n)}">
+    <label for="tel">Teléfono</label><input id="tel" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +]{9,15}" value="${esc(cli.t)}">
+    <p class="empty">Te enviaremos un recordatorio por WhatsApp 24 h antes.</p><button class="btn" type="submit">Reservar cita</button></form>`}
+},
+tarjetas(){
+  if(st.recep)return V.recepcion();
+  if(!tarjeta){const a=st.alta||(st.alta={paso:1,n:'',t:''});
+    if(a.paso===1)return `<div class="lcard w pop">${DECO}<div class="title" style="font-size:32px;position:relative">Hasta un 20 % en todos tus servicios</div>
+     <div class="msg">${esc(salon().nombre)} · Activa gratis tus tarjetas <b>Week</b> (peinados) y <b>Color</b> (coloración). Cuanto más a menudo vienes, más ahorras.</div></div>
+     <form id="falta"><label for="an">Nombre</label><input id="an" autocomplete="name" required value="${esc(a.n)}">
+     <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" value="${esc(a.t)}">
+     <label class="chk"><input type="checkbox" id="ap" required> Acepto la política de privacidad y recibir mis ventajas por WhatsApp</label>
+     <button class="btn" type="submit" style="margin-top:12px">Activar gratis</button></form>
+     <p class="empty">¿Ya eres cliente? Usa el mismo teléfono que tienes en el salón y recuperamos tus visitas.</p>`;
+    return `<button class="back" data-alta="1">‹ Volver</button><h2>Te hemos enviado un código</h2><p class="empty">Por WhatsApp al ${esc(a.t)}. En esta prueba, el código es 1234.</p>
+     <form id="fcod"><label for="ac">Código</label><input id="ac" inputmode="numeric" autocomplete="one-time-code" maxlength="4" required>
+     <button class="btn" type="submit" style="margin-top:12px">Confirmar</button></form>`}
+  const movs=tarjeta.movs.slice().reverse().slice(0,8);
+  return `<h2>Mis tarjetas</h2>
+  <div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>Enséñalo al pagar y se aplica tu descuento solo.</p></div></div>
+  <div class="grid2" style="margin-bottom:14px"><button class="btn sec" data-inst="1">Guardar en el móvil</button><button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
+  ${cardHtml('week')}${cardHtml('color')}
+  <div class="lcard p"><div class="top"><div><div class="name">Cortes, tratamientos y productos</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} para gastar</small></div></div>
+  <ul class="rules"><li>1 punto por cada euro en productos, y en servicios cuando no tienes descuento Week o Color.</li><li>100 puntos = 5 € de descuento.</li></ul></div>
+  ${movs.length?'<h3>Últimos movimientos</h3>'+movs.map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${esc(SALONES.find(x=>x.id===m.s).nombre)}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}
+  <h3>Para el personal</h3><button class="btn sec" data-recep="1">Recepción: registrar un cobro</button>
+  <p class="empty" style="margin-top:14px">Prueba: <button class="back" id="demoh">cargar un historial de ejemplo</button></p>`},
+recepcion(){
+  const r=st.r||(st.r={cod:'',pein:false,col:false,serv:'',prod:'',usar:false});
+  if(!tarjeta)return `<button class="back" data-recep="0">‹ Volver</button><h2>Recepción</h2><p class="empty">Este cliente aún no tiene tarjeta. Actívala desde «Tarjetas» o, en la versión real, dándola de alta aquí con su teléfono.</p>`;
+  const ok=r.cod.trim().toUpperCase()===tarjeta.cod,c=calcCobro(r);
+  return `<button class="back" data-recep="0">‹ Volver a mis tarjetas</button><h2>Recepción</h2>
+  <p class="empty">Pantalla del personal. En la versión real va aparte, con clave del salón, y lee el QR con la cámara.</p>
+  <div class="staff">
+   <label for="rcod">Código de tarjeta o teléfono</label><input id="rcod" value="${esc(r.cod)}" placeholder="Prueba con ${tarjeta.cod}" autocomplete="off">
+   ${r.cod&&!ok?'<p class="empty">No encuentro esa tarjeta.</p>':''}
+   ${ok?`<div class="sum"><div><span>Week</span><span>${estado('week').pct} %</span></div><div><span>Color</span><span>${estado('color').pct} %</span></div><div><span>Puntos</span><span>${tarjeta.puntos}</span></div></div>
+   <p class="empty" style="margin:8px 0 0">¿Qué lleva el ticket de hoy?</p>
+   <label class="chk"><input type="checkbox" id="rpein" ${r.pein?'checked':''}> Peinado · marca la visita Week</label>
+   <label class="chk"><input type="checkbox" id="rcol" ${r.col?'checked':''}> Coloración · marca la visita Color</label>
+   <label for="rserv">Total servicios (€)</label><input id="rserv" inputmode="decimal" value="${esc(r.serv)}" placeholder="Ej.: 54">
+   <label for="rprod">Productos (€)</label><input id="rprod" inputmode="decimal" value="${esc(r.prod)}" placeholder="0">
+   <label class="chk"><input type="checkbox" id="rusar" ${r.usar?'checked':''} ${tarjeta.puntos>=100?'':'disabled'}> Gastar puntos (tiene ${tarjeta.puntos})</label>
+   ${c.total?`<div class="sum"><div><span>Servicios</span><span>${eur(c.serv)}</span></div>${c.pct?`<div><span>Tarjeta ${c.pct} % en servicios</span><span>− ${eur(c.dto)}</span></div>`:''}
+   ${c.prod?`<div><span>Productos</span><span>${eur(c.prod)}</span></div>`:''}${c.dpts?`<div><span>Puntos (${c.pts})</span><span>− ${eur(c.dpts)}</span></div>`:''}
+   <div class="tot"><span>A cobrar</span><span>${eur(c.cobrar)}</span></div>${c.gana?`<div><span>Puntos que gana</span><span>+${c.gana}</span></div>`:''}
+   <div><span>Visitas que marca</span><span>${[r.pein?'Week':'',r.col?'Color':''].filter(Boolean).join(' + ')||'ninguna'}</span></div></div>
+   <button class="btn" id="rok">Registrar cobro</button>`:''}`:''}
+  </div>`},
+promos(){
+  return `<h2>Promociones</h2>
+  <div class="promo" style="background:var(--week)"><span class="tag">Del 1 al 24 de diciembre</span><b>Calendario de adviento</b><p>Cada día, una sorpresa distinta. Abre la casilla del día aquí y enséñala en el salón.</p></div>
+  <div class="promo" style="background:var(--color)"><span class="tag">Todo el año</span><b>Tarjeta regalo</b><p>Regala un servicio a quien quieras. Se compra en el salón y se canjea desde la app.</p></div>
+  <div class="promo" style="background:var(--pts)"><span class="tag">Clientes</span><b>Trae a una amiga</b><p>Si viene por tu recomendación, las dos sumáis 100 puntos (5 €).</p></div>
+  <p class="empty">Promociones de ejemplo: las reales las decides tú.</p>`},
+salon(){
+  const s=salon(),q=encodeURIComponent(s.maps);
+  return `<h2>${esc(s.nombre)}</h2>
+  <div class="info"><div><span>Lunes a viernes</span><b>9:00 – 21:00</b></div><div><span>Sábados</span><b>9:00 – 16:00</b></div><div><span>Domingos y festivos</span><b>Cerrado</b></div><div><span>Barbero</span><b>${esc(s.barbero)}</b></div></div>
+  <div class="links">
+   <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Cómo llegar</a>
+   <a class="btn sec" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Déjanos una reseña en Google</a>
+   <a class="btn sec" href="https://www.instagram.com/${s.ig}/" target="_blank" rel="noopener">Síguenos en Instagram · @${s.ig}</a>
+  </div>`}
+};
+
+// La mejor de las dos tarjetas descuenta todos los servicios del ticket; no los productos.
+// Puntos: se ganan con productos y con servicios cuando no hay descuento de tarjeta.
+function calcCobro(r){
+  const n=v=>Math.max(0,parseFloat(String(v).replace(',','.'))||0);
+  const serv=n(r.serv),prod=n(r.prod),pct=pctHoy(),dto=serv*pct/100,antes=serv-dto+prod;
+  const dpts=r.usar&&tarjeta.puntos>=100?Math.min(Math.floor(tarjeta.puntos/20),Math.floor(antes)):0;
+  const gana=Math.max(0,Math.floor((pct?0:serv)+prod-dpts));
+  return {serv,prod,pct,dto,dpts,pts:dpts*20,cobrar:antes-dpts,gana,total:serv+prod}}
+
+function render(){
+  $('main').innerHTML=V[st.tab]();
+  $('nav').innerHTML=TABS.map(([k,t])=>`<button class="${k===st.tab?'on':''}" data-go="${k}" aria-label="${t}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>${t}</button>`).join('');
+  const f=$('f');
+  if(f)f.onsubmit=e=>{e.preventDefault();const n=$('nom').value.trim(),t=$('tel').value.trim();if(!n||!t)return;
+    const s=SERVICIOS[st.serv];store.set('cliente',{n,t});
+    if(st.mover)citas=citas.filter(c=>c.id!==st.mover);
+    citas.push({id:Date.now(),salon:st.salon,serv:s.n,min:s.min,dia:st.dia,ini:st.hora,pct:pctEn(s,st.dia),prof:s.barb?salon().barbero:'Sin preferencia'});
+    store.set('citas',citas);toast(st.mover?'Cita cambiada ✓':'¡Cita reservada! ✓');reset();render()};
+  const qr=$('qr');
+  if(qr&&window.qrcode){try{const q=qrcode(0,'M');q.addData(tarjeta.cod);q.make();qr.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
+  const bind=(id,k,ev)=>{const el=$(id);if(el)el.addEventListener(ev||'input',()=>{st.r[k]=el.type==='checkbox'?el.checked:el.value;const typing=!ev,pos=el.selectionStart;render();const n=$(id);if(typing&&n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}})};
+  bind('rcod','cod');bind('rserv','serv');bind('rprod','prod');bind('rusar','usar','change');bind('rpein','pein','change');bind('rcol','col','change');
+  const fa=$('falta');
+  if(fa)fa.onsubmit=e=>{e.preventDefault();st.alta.n=$('an').value.trim();st.alta.t=$('at').value.trim();st.alta.paso=2;render()};
+  const fc=$('fcod');
+  if(fc)fc.onsubmit=e=>{e.preventDefault();if($('ac').value.trim()!=='1234'){toast('Código incorrecto. En la prueba es 1234');return}
+    tarjeta={cod:nuevoCod(),nombre:st.alta.n,tel:st.alta.t,alta:HOY(),week:[],color:[],puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
+    st.alta=null;toast('¡Tarjetas activadas! ✓');render();$('main').scrollTop=0;abrirInst(true)};
+  const dh=$('demoh');
+  if(dh)dh.onclick=()=>{demoHistorial();toast('Historial de ejemplo cargado');render()};
+  const rok=$('rok');
+  if(rok)rok.onclick=()=>{const r=st.r,c=calcCobro(r),hoy=HOY();
+    if(r.pein)tarjeta.week.push(hoy);if(r.col)tarjeta.color.push(hoy);
+    tarjeta.puntos+=c.gana-c.pts;
+    const res=[c.pct?'−'+c.pct+' %':'',c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
+    tarjeta.movs.push({f:hoy,s:st.salon,t:([r.pein?'Peinado':'',r.col?'Coloración':''].filter(Boolean).join(' + ')||'Servicios')+' · '+eur(c.cobrar),r:res});
+    store.set('tarjeta',tarjeta);toast('Cobro registrado · '+res);st.recep=false;st.r=null;render();$('main').scrollTop=0};
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
+  const d=b.dataset;
+  if(d.inst){abrirInst(false);return}
+  if(d.wallet){if(!tarjeta){cerrarSheet();go('tarjetas');toast('Primero activa tu tarjeta');return}abrirWallet();return}
+  if(d.so){instSO=d.so;abrirInst(false);return}
+  if(d.cerrar){cerrarSheet();return}
+  if(d.wok){cerrarSheet();toast('Prueba: en la versión real queda guardada en tu cartera');return}
+  if(d.alta){st.alta.paso=1;render();return}
+  if(d.recep){st.recep=d.recep==='1';st.r=null;render();$('main').scrollTop=0;return}
+  if(d.go)return go(d.go);
+  if(d.fam){st.fam=d.fam;st.paso='servicio'}
+  else if(d.serv){st.serv=+d.serv;st.dia=null;st.paso='hora'}
+  else if(d.dia){st.dia=d.dia}
+  else if(d.hora){st.hora=+d.hora;st.paso='datos'}
+  else if(d.paso){st.paso=d.paso}
+  else if(d.cancel){const c=citas.find(x=>x.id==d.cancel);$('mtext').textContent='¿Anular '+c.serv+' del '+fecha(c.dia)+' a las '+hm(c.ini)+'?';$('modal').classList.add('on');$('myes').onclick=()=>{citas=citas.filter(x=>x.id!=d.cancel);store.set('citas',citas);$('modal').classList.remove('on');toast('Cita anulada');render()};return}
+  else if(d.mover){const c=citas.find(x=>x.id==d.mover);st.mover=c.id;st.salon=c.salon;$('salon').value=c.salon;st.serv=SERVICIOS.findIndex(s=>s.n===c.serv);st.fam=SERVICIOS[st.serv].f;st.dia=c.dia;st.paso='hora'}
+  render();$('main').scrollTop=0;
+});
+// QR de alta: #alta-vv, #alta-hc, #alta-eu abren el alta con el salón ya elegido
+function desdeQR(){const m=(location.hash||'').match(/^#alta-(vv|hc|eu)$/);if(!m)return false;
+  st.salon=m[1];store.set('salon',st.salon);$('salon').value=st.salon;st.tab='tarjetas';st.recep=false;render();
+  if(tarjeta){abrirInst(false)}return true}
+window.addEventListener('hashchange',desdeQR);
+$('sheet').onclick=e=>{if(e.target.id==='sheet')cerrarSheet()};
+$('mno').onclick=()=>$('modal').classList.remove('on');
+if(!desdeQR())render();
+}
+</script>
+</body>
+</html>
