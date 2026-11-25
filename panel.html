@@ -219,7 +219,7 @@ function phone(flash){
 }
 
 // ---- panel del salón ----
-const TABS=[['escanear','Escanear'],['clientes','Clientes'],['alta','Alta'],['enviar','Enviar tarjeta'],['avisos','Avisar'],['resumen','Resumen']];
+const TABS=[['escanear','Escanear'],['clientes','Clientes'],['alta','Alta'],['enviar','Enviar tarjeta'],['resumen','Resumen']];
 const URL_APP='https://stechmilano.com/tarjeta';
 const pill=p=>`<span class="pill p${p}">${p} %</span>`;
 const estadoTxt=c=>c.tipo==='man'?`<span class="pill pm">${Math.min(c.sellos,10)}/10 sellos</span>${c.sellos>=10?' <span class="warn">corte gratis</span>':''}`
