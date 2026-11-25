@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>App clientes salones</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5b1f56">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mi tarjeta">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -148,6 +153,10 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
 .choice.w{background:var(--week)}.choice.c{background:var(--color)}.choice.b{background:linear-gradient(135deg,#14161c 0%,#2c3340 60%,#4a5568 120%)}
 .bar{background:#fff;border-radius:12px;padding:8px;margin:-4px 0 14px;display:flex;justify-content:center}.bar svg{max-width:100%;height:60px}
 .pol{font-size:15px;line-height:1.5}.pol h3{font-size:16px;margin:16px 0 4px}.pol p,.pol ul{margin:0 0 8px}.pol ul{padding-left:18px}
+.bell{position:relative;width:44px;height:44px;border-radius:50%;border:0;background:var(--soft);color:var(--ink);display:grid;place-items:center;cursor:pointer}.bell svg{width:22px;height:22px}
+.badge-n{position:absolute;top:2px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--ac);color:var(--acInk);font:800 11px Manrope,sans-serif;display:grid;place-items:center;padding:0 4px}
+.aviso{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.aviso .dot2{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px;background:var(--line)}.aviso.nuevo .dot2{background:var(--ac)}
+.aviso b{display:block;font-size:15px}.aviso p{margin:2px 0 0;color:var(--mut);font-size:14px}.aviso small{color:var(--mut);font-size:12.5px}
 .pop{animation:pop .5s ease-out}
 @keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}.pop{animation:none}}
@@ -158,7 +167,8 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
   <div class="phone">
     <header>
       <div class="brand">Marco Aldany</div>
-      <select id="salon" aria-label="Elige tu salón"></select>
+      <div style="display:flex;gap:8px;align-items:center"><button id="bell" class="bell" aria-label="Mis avisos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="badge" class="badge-n" hidden></span></button>
+      <select id="salon" aria-label="Elige tu salón"></select></div>
     </header>
     <div class="demo">Versión de prueba · precios y huecos de ejemplo, sin conectar a Wilapp</div>
     <main id="main"></main>
@@ -254,9 +264,10 @@ const salon=()=>SALONES.find(s=>s.id===st.salon);
 
 $('salon').innerHTML=SALONES.map(s=>`<option value="${s.id}">${esc(s.nombre)}</option>`).join('');
 $('salon').value=st.salon;
+$('bell').onclick=()=>go('avisos');
 $('salon').onchange=e=>{st.salon=e.target.value;store.set('salon',st.salon);reset();render()};
 
-const POLITICA="<h2 style=\"margin-top:0\">Pol\u00edtica de privacidad de las tarjetas Week, Color &amp; Cut y Man</h2><p class=\"empty\">Versi\u00f3n 1.0 \u00b7 noviembre de 2026</p><h3>\u00bfQui\u00e9n trata tus datos?</h3><p>STECH MILANO, S.L. (CIF B85310613), con domicilio en Avda. Pintor Antonio L\u00f3pez, 19, P9-2A, 28320 Pinto (Madrid), franquiciado de Marco Aldany en los salones de Villaviciosa de Od\u00f3n, CC Heron City y Eur\u00f3polis. Contacto para protecci\u00f3n de datos: info@stechmilano.com.</p><h3>\u00bfQu\u00e9 datos usamos?</h3><p>Tu nombre, tel\u00e9fono m\u00f3vil y correo electr\u00f3nico; la tarjeta que eliges; las visitas que registramos en el sal\u00f3n (fecha y sal\u00f3n), el tramo de gasto de cada visita, tus descuentos, sellos y puntos, y los canjes que hagas.</p><h3>\u00bfPara qu\u00e9?</h3><ul><li><b>Gestionar tu tarjeta de fidelizaci\u00f3n:</b> registrar tus visitas, calcular tu descuento, tus sellos y tus puntos, y enviarte el enlace a tu tarjeta. Base legal: la ejecuci\u00f3n de las condiciones del programa que aceptas al darte de alta.</li><li><b>Enviarte ofertas y avisos comerciales</b> (por ejemplo, que est\u00e1s a punto de perder tu descuento o promociones de los salones) por correo o WhatsApp, <b>solo si lo marcas</b>. Base legal: tu consentimiento, que puedes retirar cuando quieras.</li></ul><p>No tomamos decisiones automatizadas que te afecten de forma significativa ni elaboramos perfiles m\u00e1s all\u00e1 del c\u00e1lculo de tu descuento, sellos y puntos.</p><h3>\u00bfCu\u00e1nto tiempo los guardamos?</h3><p>Mientras tu tarjeta est\u00e9 activa. Si pasas 24 meses sin ninguna visita, o si pides la baja, la cerramos y borramos tus datos, salvo los que debamos conservar por obligaci\u00f3n legal durante los plazos que marque la ley.</p><h3>\u00bfQui\u00e9n m\u00e1s puede verlos?</h3><p>No vendemos ni cedemos tus datos. Solo acceden a ellos los proveedores que necesitamos para que funcione el programa (alojamiento del servidor, env\u00edo de correos y, si lo autorizas, WhatsApp), que act\u00faan por cuenta nuestra y con contrato. Algunos de estos proveedores pueden estar fuera del Espacio Econ\u00f3mico Europeo; en ese caso se usan las garant\u00edas que exige la normativa, como las cl\u00e1usulas contractuales tipo de la Comisi\u00f3n Europea o el Marco de Privacidad de Datos UE-EE. UU.</p><h3>\u00bfQu\u00e9 derechos tienes?</h3><p>Puedes pedir el acceso, rectificaci\u00f3n, supresi\u00f3n, oposici\u00f3n, limitaci\u00f3n y portabilidad de tus datos, y retirar tu consentimiento para comunicaciones comerciales en cualquier momento, escribiendo a info@stechmilano.com o pidi\u00e9ndolo en cualquiera de nuestros salones. Si crees que no hemos tratado bien tus datos, puedes reclamar ante la Agencia Espa\u00f1ola de Protecci\u00f3n de Datos (www.aepd.es).</p><h3>Menores</h3><p>Para darte de alta debes tener al menos 14 a\u00f1os. Si eres menor de 14, tiene que hacerlo tu madre, padre o tutor.</p>";
+const POLITICA="<h2 style=\"margin-top:0\">Pol\u00edtica de privacidad de las tarjetas Week, Color &amp; Cut y Man</h2><p class=\"empty\">Versi\u00f3n 1.0 \u00b7 noviembre de 2026</p><h3>\u00bfQui\u00e9n trata tus datos?</h3><p>STECH MILANO, S.L. (CIF B85310613), con domicilio en Avda. Pintor Antonio L\u00f3pez, 19, P9-2A, 28320 Pinto (Madrid), franquiciado de Marco Aldany en los salones de Villaviciosa de Od\u00f3n, CC Heron City y Eur\u00f3polis. Contacto para protecci\u00f3n de datos: info@stechmilano.com.</p><h3>\u00bfQu\u00e9 datos usamos?</h3><p>Tu nombre, tel\u00e9fono m\u00f3vil y correo electr\u00f3nico; la tarjeta que eliges; las visitas que registramos en el sal\u00f3n (fecha y sal\u00f3n), el tramo de gasto de cada visita, tus descuentos, sellos y puntos, y los canjes que hagas.</p><h3>\u00bfPara qu\u00e9?</h3><ul><li><b>Gestionar tu tarjeta de fidelizaci\u00f3n:</b> registrar tus visitas, calcular tu descuento, tus sellos y tus puntos, y enviarte el enlace a tu tarjeta. Base legal: la ejecuci\u00f3n de las condiciones del programa que aceptas al darte de alta.</li><li><b>Enviarte ofertas y avisos comerciales</b> (por ejemplo, que est\u00e1s a punto de perder tu descuento o promociones de los salones) por notificaci\u00f3n de la app o por correo, <b>solo si lo marcas</b>. Base legal: tu consentimiento, que puedes retirar cuando quieras.</li></ul><p>No tomamos decisiones automatizadas que te afecten de forma significativa ni elaboramos perfiles m\u00e1s all\u00e1 del c\u00e1lculo de tu descuento, sellos y puntos.</p><h3>\u00bfCu\u00e1nto tiempo los guardamos?</h3><p>Mientras tu tarjeta est\u00e9 activa. Si pasas 24 meses sin ninguna visita, o si pides la baja, la cerramos y borramos tus datos, salvo los que debamos conservar por obligaci\u00f3n legal durante los plazos que marque la ley.</p><h3>\u00bfQui\u00e9n m\u00e1s puede verlos?</h3><p>No vendemos ni cedemos tus datos. Solo acceden a ellos los proveedores que necesitamos para que funcione el programa (alojamiento del servidor, env\u00edo de correos y servicio de notificaciones del navegador de tu m\u00f3vil), que act\u00faan por cuenta nuestra y con contrato. Algunos de estos proveedores pueden estar fuera del Espacio Econ\u00f3mico Europeo; en ese caso se usan las garant\u00edas que exige la normativa, como las cl\u00e1usulas contractuales tipo de la Comisi\u00f3n Europea o el Marco de Privacidad de Datos UE-EE. UU.</p><h3>\u00bfQu\u00e9 derechos tienes?</h3><p>Puedes pedir el acceso, rectificaci\u00f3n, supresi\u00f3n, oposici\u00f3n, limitaci\u00f3n y portabilidad de tus datos, y retirar tu consentimiento para comunicaciones comerciales en cualquier momento, escribiendo a info@stechmilano.com o pidi\u00e9ndolo en cualquiera de nuestros salones. Si crees que no hemos tratado bien tus datos, puedes reclamar ante la Agencia Espa\u00f1ola de Protecci\u00f3n de Datos (www.aepd.es).</p><h3>Menores</h3><p>Para darte de alta debes tener al menos 14 a\u00f1os. Si eres menor de 14, tiene que hacerlo tu madre, padre o tutor.</p>";
 const CONDICIONES="<h2 style=\"margin-top:0\">Condiciones de las tarjetas Week, Color &amp; Cut y Man</h2><p class=\"empty\">Versi\u00f3n 1.0 \u00b7 noviembre de 2026 \u00b7 STECH MILANO, S.L., franquiciado de Marco Aldany</p><h3>1. La tarjeta</h3><ul><li>Es gratuita, personal e intransferible. Cada cliente puede tener una sola tarjeta, asociada a su m\u00f3vil.</li><li>Sirve en los tres salones: Villaviciosa de Od\u00f3n, CC Heron City y Eur\u00f3polis.</li><li>Para usarla hay que ense\u00f1arla en el sal\u00f3n antes de pagar. Las visitas solo se registran al escanearla en el sal\u00f3n.</li><li>Puedes cambiar de tarjeta desde la app. Al cambiar, se pierde lo acumulado en la anterior y la nueva empieza desde cero.</li></ul><h3>2. Tarjeta Week</h3><ul><li>Si vienes una vez por semana, a cualquier servicio: 20 % de descuento en todos los servicios de ese d\u00eda. Si vienes cada 15 d\u00edas: 10 %.</li></ul><h3>3. Tarjeta Color &amp; Cut</h3><ul><li>Si te haces color o corte una vez al mes: 20 % en todos los servicios de ese d\u00eda. Cada 2 meses: 10 %. El descuento solo se aplica el d\u00eda en que te haces color o corte.</li></ul><h3>4. Tarjeta Man (solo caballeros)</h3><ul><li>Cada corte o degradado suma 1 sello. Con 10 sellos, el siguiente corte es gratis.</li></ul><h3>5. Normas comunes de los descuentos</h3><ul><li>En Week y Color &amp; Cut cuenta la semana (de lunes a domingo) o el mes natural de la visita, no el d\u00eda exacto.</li><li>La primera visita se paga a precio normal; el descuento empieza en la siguiente.</li><li>Los descuentos se aplican a los servicios, no a los productos, y no se acumulan con otras promociones salvo que se indique.</li></ul><h3>6. Puntos</h3><ul><li>En cada visita sumas puntos seg\u00fan el tramo de lo que gastes. 100 puntos equivalen a 5 \u20ac que solo se pueden usar en la compra de productos.</li><li>Los puntos no se pueden cambiar por dinero.</li></ul><h3>7. Caducidad</h3><ul><li>Los puntos y los sellos de la Tarjeta Man se reinician a cero cada a\u00f1o, en la fecha de aniversario del alta de la tarjeta. Los que no hayas usado antes de esa fecha se pierden.</li></ul><h3>8. Cambios y cancelaci\u00f3n</h3><ul><li>STECH MILANO, S.L. puede modificar estas condiciones, o cancelar el programa o cualquier tarjeta, en cualquier momento y sin previo aviso.</li><li>Se podr\u00e1 cancelar una tarjeta si se detecta un uso indebido.</li></ul><h3>9. Datos personales</h3><ul><li>Tus datos se tratan seg\u00fan la pol\u00edtica de privacidad de las tarjetas.</li></ul>";
 // Puntos y sellos se reinician cada año en el aniversario del alta.
 function aniv(alta,hoy){const a=new Date(alta+'T12:00'),h=new Date(hoy+'T12:00');let y=h.getFullYear();let d=new Date(y,a.getMonth(),a.getDate(),12);if(d>h)d=new Date(y-1,a.getMonth(),a.getDate(),12);return d}
@@ -265,6 +276,34 @@ function revisarReinicio(t,hoy,salon){if(!t||!t.alta)return false;const ciclo=is
   if(t.ciclo===ciclo)return false;const p=t.puntos||0,se=t.sellos||0;t.puntos=0;t.sellos=0;t.ciclo=ciclo;
   if(p||se)t.movs.push({f:hoy,s:salon||t.s||'eu',t:'Reinicio anual de la tarjeta',r:(p?'−'+p+' pts':'')+(se?' −'+se+' sellos':''),dto:0,cobrado:0});return true}
 const fechaLarga=d=>d.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][d.getMonth()]+' de '+d.getFullYear();
+// ===== Avisos (lo que en la versión real llega como notificación al móvil) =====
+function avisosLista(){
+  if(!tarjeta)return [{id:'bienv0',f:HOY(),t:'Elige tu tarjeta gratis',p:'Week, Color & Cut o Man: ahorra por venir con frecuencia.',go:'tarjetas'}];
+  const L=[],hoy=HOY(),T=tarjeta.tipo;
+  if(T==='caballero'){const n=tarjeta.sellos||0;
+    if(n>=10)L.push({id:'gratis'+tarjeta.ciclo+n,f:hoy,t:'¡Tienes un corte gratis!',p:'Dilo al pagar en tu próxima visita.',go:'cita'});
+    else if(n===9)L.push({id:'falta1'+tarjeta.ciclo,f:hoy,t:'Te falta 1 sello',p:'Tu próximo corte suma el último. El siguiente, gratis.',go:'cita'})}
+  else{const e=estado(T),sem=T==='week';
+    if(e.pct&&e.dif===(e.pct===20?1:2))L.push({id:'pierde'+T+e.dif+(e.ult||''),f:hoy,t:(sem?'Esta semana':'Este mes')+' es la última para mantener tu '+e.pct+' %',p:'Ven antes del '+(e.pct===20?e.hasta20:e.hasta10)+'. ¿Te reservamos hora?',go:'cita'})}
+  const pr=proxReinicio(tarjeta.alta||hoy,hoy),dias=Math.round((pr-new Date(hoy+'T12:00'))/864e5);
+  if(dias<=30&&((tarjeta.puntos||0)>0||(tarjeta.sellos||0)>0))L.push({id:'reini'+iso(pr),f:hoy,t:'Tus puntos'+(T==='caballero'?' y sellos':'')+' se reinician en '+dias+' días',p:'El '+fechaLarga(pr)+'. Úsalos antes.',go:'tarjetas'});
+  if((tarjeta.puntos||0)>=100)L.push({id:'canje'+Math.floor(tarjeta.puntos/100),f:hoy,t:'Tienes '+eur(Math.floor(tarjeta.puntos/100)*5)+' para productos',p:'Con tus '+tarjeta.puntos+' puntos. Pídelo al pagar.',go:'tarjetas'});
+  tarjeta.movs.forEach((m,i)=>L.push({id:'mov'+i,f:m.f,t:m.t,p:m.r+' · '+(SALONES.find(x=>x.id===m.s)||{nombre:''}).nombre,go:'tarjetas'}));
+  L.push({id:'bienv'+tarjeta.cod,f:tarjeta.alta||hoy,t:'Tu Tarjeta '+NOMBRE[T]+' está activa',p:'Enséñala al pagar en cualquiera de nuestros salones.',go:'tarjetas'});
+  return L.sort((a,b)=>b.f.localeCompare(a.f))}
+let vistos=new Set(store.get('vistos',[]));
+function pintarBadge(){const n=avisosLista().filter(a=>!vistos.has(a.id)).length,b=$('badge');if(!b)return;b.hidden=!n;b.textContent=n>9?'9+':n}
+function permisoTxt(){try{if(!('Notification' in window))return 'no';return Notification.permission}catch(e){return 'no'}}
+async function pedirPermiso(){try{const r=await Notification.requestPermission();if(r==='granted'){const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+  const op={body:'Así te llegarán los avisos de tu tarjeta.',icon:'icon-192.png'};if(reg)reg.showNotification('Notificaciones activadas',op);else new Notification('Notificaciones activadas',op);toast('Notificaciones activadas ✓')}
+  else toast('No se han activado. Puedes cambiarlo en los ajustes del móvil.');}catch(e){toast('Este navegador no permite notificaciones aquí. Prueba con la app instalada.')}render()}
+// ===== Instalar con un toque =====
+let promptInst=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptInst=e;try{render()}catch(x){}});
+window.addEventListener('appinstalled',()=>{promptInst=null;toast('¡App instalada! Ya la tienes en tu pantalla de inicio');try{render()}catch(x){}});
+const instalada=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+async function instalar(){if(!promptInst)return abrirInst(false);promptInst.prompt();try{await promptInst.userChoice}catch(e){}promptInst=null;render()}
+try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.test(location.host))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 const SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 8l5-5 5 5M5 13v7h14v-7"/></svg>';
 const DOTS='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
 const WAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14h2"/></svg>';
@@ -273,6 +312,7 @@ function abrirSheet(html){$('sheetc').innerHTML=html;$('sheet').classList.add('o
 function cerrarSheet(){$('sheet').classList.remove('on')}
 function abrirInst(nueva){
   const ios=instSO==='ios';
+  if(promptInst){abrirSheet(`<h2 style="margin-top:0">${nueva?'¡Listo! Instálala en tu móvil':'Instala tu tarjeta'}</h2><p class="empty">Un toque y la tendrás en tu pantalla de inicio, como cualquier app.</p><button class="btn" data-instalar="1">Instalar con un toque</button><div class="wbtns"><button class="wbtn" data-wallet="1">${WAL} Añadir a Google Wallet</button></div><button class="btn sec" data-cerrar="1">Ahora no</button>`);return}
   abrirSheet(`<h2 style="margin-top:0">${nueva?'¡Listo! Guárdala en tu móvil':'Tenla siempre a mano'}</h2>
   <p class="empty">Así la abres con un toque, como cualquier app. No ocupa espacio ni hay que descargar nada.</p>
   <div class="seg"><button class="${ios?'on':''}" data-so="ios">iPhone</button><button class="${ios?'':'on'}" data-so="android">Android</button></div>
@@ -367,6 +407,12 @@ cita(){
   </div>
   <p class="empty" style="margin-top:14px">La reserva online es la misma de nuestra web: eliges servicio, profesional, día y hora. Por WhatsApp te atendemos en el 665 122 755.</p>
   ${tarjeta?'':`<div class="hero" style="margin-top:16px">${DECO}<b>¿Aún sin tarjeta?</b><p>Elige gratis Week, Color &amp; Cut o Man y ahorra en tus visitas.</p><button class="btn light" data-go="tarjetas">Elegir mi tarjeta</button></div>`}`},
+avisos(){
+  const L=avisosLista(),perm=permisoTxt();
+  const html=`<h2>Mis avisos</h2>
+  ${perm==='granted'?'<p class="empty">Notificaciones activadas: te llegarán también al móvil.</p>':perm==='denied'?'<p class="empty">Tienes las notificaciones bloqueadas. Puedes activarlas en los ajustes del móvil.</p>':`<div class="sum" style="margin-top:0">¿Quieres que te avisemos en el móvil antes de perder tu descuento?<button class="btn" data-notif="1" style="margin-top:10px">Activar notificaciones</button></div>`}
+  ${L.map(a=>`<button class="aviso ${vistos.has(a.id)?'':'nuevo'}" data-go="${a.go}" style="width:100%;text-align:left;background:none;border-left:0;border-right:0;border-top:0;cursor:pointer;font:inherit;color:inherit"><span class="dot2"></span><span><b>${esc(a.t)}</b><p>${esc(a.p)}</p><small>${fecha(a.f)}</small></span></button>`).join('')}`;
+  L.forEach(a=>vistos.add(a.id));store.set('vistos',[...vistos]);return html},
 tarjetas(){
   if(st.recep)return V.recepcion();
   if(!tarjeta){const a=st.alta||(st.alta={paso:0,tipo:null,n:'',t:''});
@@ -382,7 +428,7 @@ tarjetas(){
      <label for="ae">Correo electrónico</label><input id="ae" type="email" inputmode="email" autocomplete="email" required value="${esc(a.e||'')}">
      <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" value="${esc(a.t)}">
      <label class="chk" style="align-items:flex-start"><input type="checkbox" id="ap" required> <span>He leído y acepto las <button type="button" class="back" style="padding:0;min-height:0;display:inline;text-decoration:underline" data-condiciones="1">condiciones de la tarjeta</button> y la <button type="button" class="back" style="padding:0;min-height:0;display:inline;text-decoration:underline" data-politica="1">política de privacidad</button> *</span></label>
-     <label class="chk" style="align-items:flex-start"><input type="checkbox" id="am"> <span>Quiero recibir ofertas y avisos de mis ventajas por correo o WhatsApp (opcional)</span></label>
+     <label class="chk" style="align-items:flex-start"><input type="checkbox" id="am"> <span>Quiero recibir ofertas y avisos de mis ventajas por notificación de la app o por correo (opcional)</span></label>
      <button class="btn" type="submit" style="margin-top:12px">Activar gratis</button></form>
      <p class="empty">Tu tarjeta se activa al momento. En tu primera visita la validamos en el salón. ¿Ya eres cliente? Usa el mismo teléfono que tienes en el salón.</p>`;
     return `<button class="back" data-alta="1">‹ Volver</button><h2>Revisa tu correo</h2><p class="empty">Te hemos enviado un código a <b>${esc(a.e||'')}</b>. Si no lo ves en un minuto, mira en la carpeta de spam o promociones. En esta prueba, el código es 1234.</p>
@@ -399,7 +445,7 @@ tarjetas(){
   return `<h2>Mi tarjeta</h2>
   ${tarjeta.validada===false?'<div class="sum" style="margin-top:0">Tarjeta activa. Se valida en tu primera visita al salón, al escanearla.</div>':''}<div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
   <div class="bar"><svg id="bc"></svg></div>
-  <div class="grid2" style="margin-bottom:14px"><button class="btn sec" data-inst="1">Guardar en el móvil</button><button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
+  <div class="grid2" style="margin-bottom:14px">${instalada()?'<button class="btn sec" disabled>Ya la tienes instalada ✓</button>':`<button class="btn sec" data-instalar="1">${promptInst?'Instalar con un toque':'Guardar en el móvil'}</button>`}<button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
   ${cab?sellosHtml():cardHtml(tarjeta.tipo)}
   <div class="lcard p"><div class="top"><div><div class="name">Según lo que gastas en cada visita</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} en productos</small></div></div>
   <ul class="rules"><li>En cada visita sumas puntos según lo que gastes: por ejemplo, de 20 a 30 €, 20 puntos; de 40 a 50 €, 40 puntos.</li><li>100 puntos = 5 € para gastar <b>en productos</b>.</li><li>Se reinician el <b>${fechaLarga(proxReinicio(tarjeta.alta||HOY(),HOY()))}</b>: úsalos antes.</li></ul></div>
@@ -462,6 +508,7 @@ function calcCobro(r){
   return {serv,prod,pct,gratis,dto,dpts,pts:dpts*20,cobrar:antes-dpts,gana,total:serv+prod}}
 
 function render(){
+  setTimeout(pintarBadge,0);
   if(tarjeta&&revisarReinicio(tarjeta,HOY(),st.salon)){store.set('tarjeta',tarjeta);setTimeout(()=>toast('Tu tarjeta ha cumplido un año: puntos y sellos a cero'),300)}
   $('main').innerHTML=V[st.tab]();
   $('nav').innerHTML=TABS.map(([k,t])=>`<button class="${k===st.tab?'on':''}" data-go="${k}" aria-label="${t}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>${t}</button>`).join('');
@@ -501,8 +548,10 @@ function render(){
 }
 
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-condiciones],[data-politica],[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
+  const b=e.target.closest('[data-notif],[data-instalar],[data-condiciones],[data-politica],[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
   const d=b.dataset;
+  if(d.notif){pedirPermiso();return}
+  if(d.instalar){cerrarSheet();instalar();return}
   if(d.condiciones){abrirSheet('<div class="pol">'+CONDICIONES+'</div><button class="btn" data-cerrar="1" style="margin-top:14px">Cerrar</button>');return}
   if(d.politica){abrirSheet('<div class="pol">'+POLITICA+'</div><button class="btn" data-cerrar="1" style="margin-top:14px">Cerrar</button>');return}
   if(d.cambiar){st.cambio=d.cambiar==='1';render();$('main').scrollTop=0;return}
