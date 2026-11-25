@@ -299,7 +299,7 @@ enviar(){
   <label for="ecli">Cliente</label><select id="ecli">${C.map(x=>`<option value="${x.id}" ${x===c?'selected':''}>${esc(x.n)} · ${esc(x.t)}</option>`).join('')}</select>
   <h3>Mensaje de bienvenida</h3><div class="msgbox">${esc(txt)}</div>
   <div class="opts">
-   <div class="optc"><b>1 · Automático al darle de alta</b><p>En la versión real, el bot de WhatsApp de los salones lo envía solo en cuanto se crea la tarjeta. Nadie tiene que hacer nada. Meta cobra unos céntimos por mensaje.</p></div>
+   <div class="optc"><b>1 · Por correo, automático y gratis</b><p>En la versión real, al crear la tarjeta le llega solo un correo con su enlace. Nadie tiene que hacer nada y no cuesta nada.</p></div>
    <div class="optc"><b>2 · Desde el WhatsApp del salón, gratis</b><p>Se abre WhatsApp con el mensaje ya escrito para ese cliente; solo hay que pulsar enviar.</p>
     <div class="row2"><a class="btn" href="https://wa.me/${tel}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Abrir WhatsApp</a><button class="btn sec" data-copyt="1">Copiar mensaje</button></div></div>
    <div class="optc"><b>3 · Que se la active el propio cliente</b><p>Con un cartel con QR en el espejo y en recepción, el enlace en la bio de Instagram y una historia. El cliente escanea, pone su móvil y recibe su tarjeta.</p></div>
@@ -310,8 +310,9 @@ enviar(){
   <h3>Para Instagram</h3><div class="msgbox">${esc('✨ Nuevas tarjetas Marco Aldany: Week y Color & Cut, hasta un 20 % en todos tus servicios; Man, tu corte gratis cada 10. Elige la tuya gratis en el enlace de la bio 💜')}</div>
   <h3>Lanzamiento a los clientes que ya tenéis</h3><p class="mini">Un único envío desde el bot a los clientes de Wilapp con móvil, con su enlace personal ya creado. Es la forma más rápida de que la tengan todos el primer día. Antes de enviarlo te confirmo cuántos mensajes son y lo que cuesta.</p>`},
 alta(){
-  return `<h2>Dar de alta una tarjeta</h2><p class="mini">Gratis. Al cliente le llega un WhatsApp con el enlace a su tarjeta.</p>
+  return `<h2>Dar de alta una tarjeta</h2><p class="mini">Gratis. Al cliente le llega un correo con el enlace a su tarjeta.</p>
   <form id="falta"><label for="an">Nombre y apellido</label><input id="an" required autocomplete="off">
+  <label for="ae">Correo electrónico</label><input id="ae" type="email" required autocomplete="off">
   <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" required pattern="[0-9 +]{9,15}" autocomplete="off">
   <label for="atipo">Tarjeta (solo una por cliente)</label><select id="atipo"><option value="week">Week · cualquier servicio: 20 % semanal, 10 % cada 15 días</option><option value="color">Color &amp; Cut · color o corte: 20 % mensual, 10 % cada 2 meses (solo el día de color o corte)</option><option value="man">Man · caballeros: 10 sellos = corte gratis</option></select>
   <label for="as">Salón</label><select id="as">${Object.entries(SAL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
@@ -339,7 +340,7 @@ function render(){
   const ec=$('ecli');if(ec)ec.onchange=()=>{sel=C.find(x=>String(x.id)===ec.value);f.cli=ec.value;phone(true);render()};
   const qp=$('qrp');if(qp&&window.qrcode){try{const g=qrcode(0,'M');g.addData(URL_APP);g.make();qp.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
   const fa=$('falta');
-  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,n:$('an').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
+  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,n:$('an').value.trim(),e:$('ae').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
     C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea],[data-buscar]');if(!b)return;

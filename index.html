@@ -369,11 +369,12 @@ tarjetas(){
     if(a.paso===1)return `<button class="back" data-alta="0">‹ Cambiar de tarjeta</button><div class="lcard ${a.tipo==='week'?'w':a.tipo==='color'?'c':'b'} pop">${DECO}<div class="name" style="position:relative">Has elegido</div><div class="title" style="font-size:32px;position:relative">Tarjeta ${NOMBRE[a.tipo]}</div>
      <div class="msg">${a.tipo==='caballero'?'Un sello por cada corte o degradado. Con 10, el siguiente corte es gratis.':'Hasta un 20 % en todos tus servicios por venir con frecuencia.'}</div></div>
      <form id="falta"><label for="an">Nombre</label><input id="an" autocomplete="name" required value="${esc(a.n)}">
+     <label for="ae">Correo electrónico</label><input id="ae" type="email" inputmode="email" autocomplete="email" required value="${esc(a.e||'')}">
      <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" value="${esc(a.t)}">
-     <label class="chk"><input type="checkbox" id="ap" required> Acepto la política de privacidad y recibir mis ventajas por WhatsApp</label>
+     <label class="chk"><input type="checkbox" id="ap" required> Acepto la política de privacidad y recibir mis ventajas por correo</label>
      <button class="btn" type="submit" style="margin-top:12px">Activar gratis</button></form>
      <p class="empty">¿Ya eres cliente? Usa el mismo teléfono que tienes en el salón y recuperamos tus visitas.</p>`;
-    return `<button class="back" data-alta="1">‹ Volver</button><h2>Te hemos enviado un código</h2><p class="empty">Por WhatsApp al ${esc(a.t)}. En esta prueba, el código es 1234.</p>
+    return `<button class="back" data-alta="1">‹ Volver</button><h2>Revisa tu correo</h2><p class="empty">Te hemos enviado un código a <b>${esc(a.e||'')}</b>. Si no lo ves en un minuto, mira en la carpeta de spam o promociones. En esta prueba, el código es 1234.</p>
      <form id="fcod"><label for="ac">Código</label><input id="ac" inputmode="numeric" autocomplete="one-time-code" maxlength="4" required>
      <button class="btn" type="submit" style="margin-top:12px">Confirmar</button></form>`}
   if(st.cambio){const otras=['week','color','caballero'].filter(t=>t!==tarjeta.tipo);
@@ -464,10 +465,10 @@ function render(){
   const bind=(id,k,ev)=>{const el=$(id);if(el)el.addEventListener(ev||'input',()=>{st.r[k]=el.type==='checkbox'?el.checked:el.value;const typing=!ev,pos=el.selectionStart;render();const n=$(id);if(typing&&n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}})};
   bind('rcod','cod');bind('rserv','serv');bind('rprod','prod');bind('rusar','usar','change');bind('rmarca','marca','change');bind('rgratis','gratis','change');bind('rpc','precioCorte');
   const fa=$('falta');
-  if(fa)fa.onsubmit=e=>{e.preventDefault();st.alta.n=$('an').value.trim();st.alta.t=$('at').value.trim();st.alta.paso=2;render()};
+  if(fa)fa.onsubmit=e=>{e.preventDefault();st.alta.n=$('an').value.trim();st.alta.e=$('ae').value.trim();st.alta.t=$('at').value.trim();st.alta.paso=2;render()};
   const fc=$('fcod');
   if(fc)fc.onsubmit=e=>{e.preventDefault();if($('ac').value.trim()!=='1234'){toast('Código incorrecto. En la prueba es 1234');return}
-    tarjeta={cod:nuevoCod(),tipo:st.alta.tipo,nombre:st.alta.n,tel:st.alta.t,alta:HOY(),week:[],color:[],sellos:0,puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
+    tarjeta={cod:nuevoCod(),tipo:st.alta.tipo,nombre:st.alta.n,email:st.alta.e,tel:st.alta.t,alta:HOY(),week:[],color:[],sellos:0,puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
     st.alta=null;toast('¡Tarjetas activadas! ✓');render();$('main').scrollTop=0;abrirInst(true)};
   const dh=$('demoh');
   if(dh)dh.onclick=()=>{demoHistorial();toast('Historial de ejemplo cargado');render()};
