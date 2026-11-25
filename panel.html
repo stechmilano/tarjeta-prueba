@@ -94,6 +94,12 @@ input,select{width:100%;font:16px Manrope,sans-serif;padding:11px 12px;border-ra
 .res .acc{background:rgba(255,255,255,.18);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:17px;font-weight:700}
 .bar{background:#fff;border-radius:10px;padding:6px;margin-top:8px;display:flex;justify-content:center}.bar svg{max-width:100%;height:56px}
 .hist{font-size:14px}
+.tramos{background:rgba(255,255,255,.14);border-radius:14px;padding:12px;margin-top:12px}
+.tramos p{margin:0 0 8px;font-weight:800}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.tgrid button{border:0;border-radius:10px;background:#fff;color:#1b1619;font:800 14px Manrope,sans-serif;min-height:52px;cursor:pointer;line-height:1.2}
+.tgrid button small{display:block;font-weight:600;font-size:12px;color:#6d6268}
+.canjes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.canjes button{border:0;border-radius:10px;background:#1b1619;color:#fff;font:800 14px Manrope,sans-serif;min-height:44px;padding:0 12px;cursor:pointer}
 .poster{border-radius:20px;background:var(--week);color:#fff;padding:20px;display:flex;gap:16px;align-items:center;margin:10px 0}
 .poster b{font:400 26px/1.1 'DM Serif Display',serif;display:block;margin-bottom:6px}
 .poster p{margin:0;opacity:.9;font-size:14.5px}
@@ -185,7 +191,7 @@ function phone(flash){
   $('phone').innerHTML=`<div class="ph-h"><span class="brand">Marco Aldany</span><small>${SAL[c.s]}</small></div>
   <div class="qrbox"><div class="qr" id="qr">${c.cod}</div><div><b>Hola, ${esc(c.n.split(' ')[0])}</b><p>Tarjeta ${NOM[c.tipo]} · ${c.cod}</p><div class="bar"><svg id="bc"></svg></div><p>${man?'Enséñala al pagar y suma tu sello.':'Enséñala al pagar: tu descuento se aplica solo en todos tus servicios.'}</p></div></div>
   <div class="${flash?'flash':''}">${card(c)}
-  <div class="lcard p"><div class="row"><div><div class="name">${man?'Productos':'Productos y visitas sin descuento'}</div><div class="title">Puntos</div></div><div class="pct" style="font-size:40px">${c.puntos}</div></div><div class="msg" style="margin-bottom:0">= ${eur(c.puntos*.05)} para gastar en productos · 100 puntos = 5 €</div></div></div>
+  <div class="lcard p"><div class="row"><div><div class="name">Según lo que gastas en cada visita</div><div class="title">Puntos</div></div><div class="pct" style="font-size:40px">${c.puntos}</div></div><div class="msg" style="margin-bottom:0">= ${eur(c.puntos*.05)} para gastar en productos · 100 puntos = 5 €</div></div></div>
   ${c.movs.length?'<p class="lbl" style="margin-top:12px">Últimos movimientos</p>'+c.movs.slice().reverse().slice(0,4).map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${SAL[m.s]}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}`;
   const q=$('qr');if(q&&window.qrcode){try{const g=qrcode(0,'M');g.addData(c.cod);g.make();q.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
   try{if(window.JsBarcode)JsBarcode('#bc',c.cod,{format:'CODE128',displayValue:false,height:50,margin:0,width:1.6})}catch(e){}
@@ -224,15 +230,22 @@ function registrarScan(raw){
   c.movs.push({f:HOY,s:c.s,t:'Escaneo · '+{week:'Visita semanal',color:'Color / corte',man:'Corte / degradado'}[c.tipo],r:c.tipo==='man'?'+1 sello':(pctAntes?'−'+pctAntes+' %':'activa descuento'),dto:0,cobrado:0});
   ultimo={tipo:'ok',c,txt,acc};phone(true);render();
 }
+// Puntos por tramos de gasto del día (servicios + productos): 1 punto por euro, contando el mínimo del tramo.
+const TRAMOS=[[0,10,5],[10,20,10],[20,30,20],[30,40,30],[40,50,40],[50,60,50],[60,80,60],[80,100,80],[100,150,100],[150,null,150]];
+function tramosHtml(c){
+  if(c.ptsHoy===HOY)return `<div class="tramos"><p>Puntos de hoy ya sumados · total ${c.puntos} (= ${eur(c.puntos*.05)} en productos)</p>${canjesHtml(c)}</div>`;
+  return `<div class="tramos"><p>¿Cuánto ha gastado hoy? (servicios + productos)</p><div class="tgrid">${TRAMOS.map(([a,b,p],i)=>`<button data-tramo="${i}">${b?a+'–'+b+' €':'+'+a+' €'}<small>+${p} pts</small></button>`).join('')}</div>${canjesHtml(c)}</div>`}
+function canjesHtml(c){const n=Math.floor(c.puntos/100);if(!n)return `<p style="margin:8px 0 0;font-weight:600">Lleva ${c.puntos} puntos: con 100 tiene 5 € en productos.</p>`;
+  return `<p style="margin:10px 0 0">Tiene ${c.puntos} puntos. Si compra productos, puede canjear:</p><div class="canjes">${Array.from({length:Math.min(n,4)},(_,k)=>`<button data-canjea="${(k+1)*100}">${(k+1)*5} € en productos (−${(k+1)*100} pts)</button>`).join('')}</div>`}
 function accion(c,pct){if(c.tipo==='man')return c.sellos>=10?'Corte gratis disponible':'Sin descuento hoy · cobro normal';
   return pct?`Aplica en caja un ${pct} % en TODOS los servicios de hoy`:'Primera visita del periodo: cobro normal. Desde la próxima, descuento.'}
 const V={
 escanear(){
-  return `<h2>Escanear tarjeta</h2><p class="mini">Con el escáner, apunta al QR o al código de barras del móvil del cliente. La visita se registra sola.</p>
+  return `<h2>Escanear tarjeta</h2><p class="mini">Con el escáner, apunta al QR o al código de barras del móvil del cliente. La visita se registra sola; después toca el gasto del día y se suman sus puntos.</p>
   <form id="fscan" class="scanbox" autocomplete="off"><span class="ico">Listo para escanear</span><span class="mini">Si el cursor no está en la caja, haz clic en ella.</span>
   <input id="scan" aria-label="Código de la tarjeta" placeholder="Código de tarjeta" autocomplete="off" autocapitalize="characters" spellcheck="false"></form>
   ${ultimo?`<div class="res ${ultimo.tipo}">${ultimo.c?`<span>${NOM[ultimo.c.tipo]} · ${SAL[ultimo.c.s]} · ${ultimo.c.cod}</span><b class="big">${esc(ultimo.c.n)}</b>`:''}<div>${esc(ultimo.txt)}</div>${ultimo.acc?`<div class="acc">${esc(ultimo.acc)}</div>`:''}
-   ${ultimo.canjear?'<button class="btn" style="margin-top:10px;background:#fff;color:#1b1619" id="canj">Corte gratis aplicado: poner sellos a 0</button>':''}</div>`:''}
+   ${ultimo.canjear?'<button class="btn" style="margin-top:10px;background:#fff;color:#1b1619" id="canj">Corte gratis aplicado: poner sellos a 0</button>':''}${ultimo.c?tramosHtml(ultimo.c):''}${ultimo.ptsTxt?`<div class="acc">${esc(ultimo.ptsTxt)}</div>`:''}</div>`:''}
   <h3>Registradas hoy</h3>${(()=>{const hoy=C.filter(c=>c.ultScan===HOY);return hoy.length?hoy.map(c=>`<div class="mov hist"><span>${esc(c.n)}<small>${NOM[c.tipo]} · ${SAL[c.s]}</small></span><b>${c.tipo==='man'?Math.min(c.sellos,10)+'/10':pctDe(c)+' %'}</b></div>`).join(''):'<p class="mini">Aún ninguna.</p>'})()}
   <p class="mini" style="margin-top:12px">Para probar sin escáner: escribe un código (por ejemplo ${C[0].cod}) y pulsa Intro.</p>`},
 cobro(){const c=C.find(x=>String(x.id)===f.cli)||C[0],k=calc(c),man=c.tipo==='man';
@@ -322,7 +335,11 @@ function render(){
   if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,n:$('an').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
     C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt]');if(!b)return;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea]');if(!b)return;
+  if(b.dataset.tramo&&ultimo&&ultimo.c){const c=ultimo.c,[a,z,p]=TRAMOS[+b.dataset.tramo];c.puntos+=p;c.ptsHoy=HOY;
+    c.movs.push({f:HOY,s:c.s,t:'Gasto '+(z?a+'–'+z+' €':'+'+a+' €'),r:'+'+p+' pts',dto:0,cobrado:0});ultimo.ptsTxt='+'+p+' puntos sumados';phone(true);render();return}
+  if(b.dataset.canjea&&ultimo&&ultimo.c){const c=ultimo.c,p=+b.dataset.canjea;if(c.puntos<p)return;c.puntos-=p;
+    c.movs.push({f:HOY,s:c.s,t:'Canje en productos · '+eur(p*.05),r:'−'+p+' pts',dto:p*.05,cobrado:0});ultimo.ptsTxt='Canjeados '+p+' puntos: descuenta '+eur(p*.05)+' en los productos';phone(true);render();return}
   if(b.dataset.copyt){try{navigator.clipboard.writeText(bienvenida(sel)).then(()=>toast('Mensaje copiado'),()=>toast('No se pudo copiar: selecciónalo a mano'))}catch(err){toast('No se pudo copiar: selecciónalo a mano')}return}
   if(b.dataset.tab){tab=b.dataset.tab;render()}
   else if(b.dataset.ver){sel=C.find(x=>String(x.id)===b.dataset.ver);f.cli=b.dataset.ver;phone(true);render()}

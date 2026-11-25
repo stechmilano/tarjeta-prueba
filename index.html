@@ -389,8 +389,8 @@ tarjetas(){
   <div class="bar"><svg id="bc"></svg></div>
   <div class="grid2" style="margin-bottom:14px"><button class="btn sec" data-inst="1">Guardar en el móvil</button><button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
   ${cab?sellosHtml():cardHtml(tarjeta.tipo)}
-  <div class="lcard p"><div class="top"><div><div class="name">${cab?'Productos':'Productos y visitas sin descuento'}</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} en productos</small></div></div>
-  <ul class="rules"><li>${cab?'1 punto por cada euro en productos.':'1 punto por cada euro en productos, y en servicios cuando no tienes descuento.'}</li><li>100 puntos = 5 € para gastar <b>en productos</b>.</li></ul></div>
+  <div class="lcard p"><div class="top"><div><div class="name">Según lo que gastas en cada visita</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} en productos</small></div></div>
+  <ul class="rules"><li>En cada visita sumas puntos según lo que gastes: por ejemplo, de 20 a 30 €, 20 puntos; de 40 a 50 €, 40 puntos.</li><li>100 puntos = 5 € para gastar <b>en productos</b>.</li></ul></div>
   ${movs.length?'<h3>Últimos movimientos</h3>'+movs.map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${esc(SALONES.find(x=>x.id===m.s).nombre)}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}
   <button class="btn sec" data-cambiar="1" style="margin-top:8px">Cambiar de tarjeta</button><p class="empty">Solo se puede tener una tarjeta. Si la cambias, la nueva empieza desde cero.</p>
   <h3>Para el personal</h3><button class="btn sec" data-recep="1">Recepción: registrar un cobro</button>
