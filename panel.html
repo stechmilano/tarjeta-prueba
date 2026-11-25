@@ -85,6 +85,7 @@ input,select{width:100%;font:16px Manrope,sans-serif;padding:11px 12px;border-ra
 .sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:18px}
 .msgbox{background:var(--soft);border-radius:14px;padding:12px;font-size:14.5px;white-space:pre-wrap;margin:8px 0}
 .scroll{overflow-x:auto}
+.pol h2{font-size:20px}.pol h3{font-size:15px;margin:12px 0 4px}.pol p,.pol ul{margin:0 0 6px}
 .scanbox{border:3px dashed var(--ac);border-radius:20px;padding:20px;text-align:center;margin:10px 0}
 .scanbox input{font-size:22px;text-align:center;letter-spacing:.08em;margin-top:10px}
 .scanbox .ico{font:400 30px/1.1 'DM Serif Display',serif;display:block}
@@ -154,6 +155,7 @@ function estado(c,tipo){const T=TARJ[tipo],v=c[tipo];if(!v.length)return {pct:0}
   const u=T.idx(v.slice().sort().pop()),dif=T.idx(HOY)-u;
   return {pct:dif<=1?20:dif===2?10:0,dif,hasta20:T.fin(u+1),hasta10:T.fin(u+2),
     pierdeYa:dif===1||dif===2}}// esta semana / este mes es el último para mantener el nivel
+const POLITICA="<h2 style=\"margin-top:0\">Pol\u00edtica de privacidad de las tarjetas Week, Color &amp; Cut y Man</h2><p class=\"empty\">Versi\u00f3n 1.0 \u00b7 noviembre de 2026</p><h3>\u00bfQui\u00e9n trata tus datos?</h3><p>STECH MILANO, S.L. (CIF B85310613), con domicilio en Avda. Pintor Antonio L\u00f3pez, 19, P9-2A, 28320 Pinto (Madrid), franquiciado de Marco Aldany en los salones de Villaviciosa de Od\u00f3n, CC Heron City y Eur\u00f3polis. Contacto para protecci\u00f3n de datos: info@stechmilano.com.</p><h3>\u00bfQu\u00e9 datos usamos?</h3><p>Tu nombre, tel\u00e9fono m\u00f3vil y correo electr\u00f3nico; la tarjeta que eliges; las visitas que registramos en el sal\u00f3n (fecha y sal\u00f3n), el tramo de gasto de cada visita, tus descuentos, sellos y puntos, y los canjes que hagas.</p><h3>\u00bfPara qu\u00e9?</h3><ul><li><b>Gestionar tu tarjeta de fidelizaci\u00f3n:</b> registrar tus visitas, calcular tu descuento, tus sellos y tus puntos, y enviarte el enlace a tu tarjeta. Base legal: la ejecuci\u00f3n de las condiciones del programa que aceptas al darte de alta.</li><li><b>Enviarte ofertas y avisos comerciales</b> (por ejemplo, que est\u00e1s a punto de perder tu descuento o promociones de los salones) por correo o WhatsApp, <b>solo si lo marcas</b>. Base legal: tu consentimiento, que puedes retirar cuando quieras.</li></ul><p>No tomamos decisiones automatizadas que te afecten de forma significativa ni elaboramos perfiles m\u00e1s all\u00e1 del c\u00e1lculo de tu descuento, sellos y puntos.</p><h3>\u00bfCu\u00e1nto tiempo los guardamos?</h3><p>Mientras tu tarjeta est\u00e9 activa. Si pasas 24 meses sin ninguna visita, o si pides la baja, la cerramos y borramos tus datos, salvo los que debamos conservar por obligaci\u00f3n legal durante los plazos que marque la ley.</p><h3>\u00bfQui\u00e9n m\u00e1s puede verlos?</h3><p>No vendemos ni cedemos tus datos. Solo acceden a ellos los proveedores que necesitamos para que funcione el programa (alojamiento del servidor, env\u00edo de correos y, si lo autorizas, WhatsApp), que act\u00faan por cuenta nuestra y con contrato. Algunos de estos proveedores pueden estar fuera del Espacio Econ\u00f3mico Europeo; en ese caso se usan las garant\u00edas que exige la normativa, como las cl\u00e1usulas contractuales tipo de la Comisi\u00f3n Europea o el Marco de Privacidad de Datos UE-EE. UU.</p><h3>\u00bfQu\u00e9 derechos tienes?</h3><p>Puedes pedir el acceso, rectificaci\u00f3n, supresi\u00f3n, oposici\u00f3n, limitaci\u00f3n y portabilidad de tus datos, y retirar tu consentimiento para comunicaciones comerciales en cualquier momento, escribiendo a info@stechmilano.com o pidi\u00e9ndolo en cualquiera de nuestros salones. Si crees que no hemos tratado bien tus datos, puedes reclamar ante la Agencia Espa\u00f1ola de Protecci\u00f3n de Datos (www.aepd.es).</p><h3>Menores</h3><p>Para darte de alta debes tener al menos 14 a\u00f1os. Si eres menor de 14, tiene que hacerlo tu madre, padre o tutor.</p>";
 const NOM={week:'Week',color:'Color & Cut',man:'Man'};
 const pctDe=c=>c.tipo==='man'?0:estado(c,c.tipo).pct;
 
@@ -271,9 +273,9 @@ cobro(){const c=C.find(x=>String(x.id)===f.cli)||C[0],k=calc(c),man=c.tipo==='ma
   <p class="mini" style="margin-top:12px">El mismo descuento hay que aplicarlo en la caja de Wilapp hasta que lo conectemos.</p>`},
 clientes(){
   return `<h2>Clientes con tarjeta</h2><p class="mini">Pulsa un nombre para ver su tarjeta en el móvil. Cada cliente tiene una sola tarjeta.</p>
-  <div class="scroll"><table class="stack"><thead><tr><th>Cliente</th><th>Salón</th><th>Tarjeta</th><th>Estado</th><th class="n">Puntos</th><th>Última visita</th></tr></thead><tbody>
+  <div class="scroll"><table class="stack"><thead><tr><th>Cliente</th><th>Salón de alta</th><th>Tarjeta</th><th>Estado</th><th class="n">Puntos</th><th>Última visita</th></tr></thead><tbody>
   ${C.map(c=>{const ult=[...c.week,...c.color].sort().pop();
-   return `<tr class="${c===sel?'sel':''}"><td data-l="Cliente"><button class="lnk" data-ver="${c.id}">${esc(c.n)}</button></td><td data-l="Salón">${SAL[c.s]}</td>
+   return `<tr class="${c===sel?'sel':''}"><td data-l="Cliente"><button class="lnk" data-ver="${c.id}">${esc(c.n)}</button></td><td data-l="Salón de alta">${SAL[c.s]}</td>
    <td data-l="Tarjeta">${NOM[c.tipo]}</td><td data-l="Estado">${estadoTxt(c)}</td>
    <td data-l="Puntos" class="n">${c.puntos}</td><td data-l="Última visita">${ult?fecha(ult):'—'}</td></tr>`}).join('')}
   </tbody></table></div>`},
@@ -301,7 +303,7 @@ enviar(){
   <h3>Mensaje de bienvenida</h3><div class="msgbox">${esc(txt)}</div>
   <div class="opts">
    <div class="optc"><b>1 · Por correo, automático y gratis</b><p>En la versión real, al crear la tarjeta le llega solo un correo con su enlace. Nadie tiene que hacer nada y no cuesta nada.</p></div>
-   <div class="optc"><b>2 · Desde el WhatsApp del salón, gratis</b><p>Se abre WhatsApp con el mensaje ya escrito para ese cliente; solo hay que pulsar enviar.</p>
+   <div class="optc"><b>2 · Desde el WhatsApp del salón, gratis</b><p>Para quien no mire el correo. Se abre WhatsApp en el móvil o el ordenador del salón con el mensaje ya escrito; solo hay que pulsar enviar. Al mandarlo a mano desde la app, no tiene coste.</p>
     <div class="row2"><a class="btn" href="https://wa.me/${tel}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Abrir WhatsApp</a><button class="btn sec" data-copyt="1">Copiar mensaje</button></div></div>
    <div class="optc"><b>3 · Que se la active el propio cliente</b><p>Con un cartel con QR en el espejo y en recepción, el enlace en la bio de Instagram y una historia. El cliente escanea, pone su móvil y recibe su tarjeta.</p></div>
   </div>
@@ -309,7 +311,7 @@ enviar(){
   <div class="poster"><div class="qr" id="qrp"></div><div><b>Elige tu tarjeta gratis</b><p>Week y Color &amp; Cut: hasta un 20 % en todos tus servicios. Man: con 10 cortes, uno gratis. Escanea y actívala.</p></div></div>
   <p class="mini">El QR lleva a ${URL_APP} (dirección propuesta). Te preparo el cartel para imprimir cuando quieras.</p>
   <h3>Para Instagram</h3><div class="msgbox">${esc('✨ Nuevas tarjetas Marco Aldany: Week y Color & Cut, hasta un 20 % en todos tus servicios; Man, tu corte gratis cada 10. Elige la tuya gratis en el enlace de la bio 💜')}</div>
-  <h3>Lanzamiento a los clientes que ya tenéis</h3><p class="mini">Un único envío desde el bot a los clientes de Wilapp con móvil, con su enlace personal ya creado. Es la forma más rápida de que la tengan todos el primer día. Antes de enviarlo te confirmo cuántos mensajes son y lo que cuesta.</p>`},
+  <h3>Lanzamiento a los clientes que ya tenéis</h3><p class="mini">Un correo único a los clientes de Wilapp que tengan correo, invitándoles a elegir su tarjeta con el enlace del cartel (gratis). No se les crea la tarjeta sin su permiso: tienen que aceptar la política de privacidad al darse de alta.</p>`},
 alta(){
   return `<h2>Dar de alta una tarjeta</h2><p class="mini">Gratis y sin código. La tarjeta queda activa al momento y se valida al escanearla por primera vez. Al cliente le llega un correo con el enlace.</p>
   <form id="falta"><label for="an">Nombre y apellido</label><input id="an" required autocomplete="off">
@@ -317,7 +319,9 @@ alta(){
   <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" required pattern="[0-9 +]{9,15}" autocomplete="off">
   <label for="atipo">Tarjeta (solo una por cliente)</label><select id="atipo"><option value="week">Week · cualquier servicio: 20 % semanal, 10 % cada 15 días</option><option value="color">Color &amp; Cut · color o corte: 20 % mensual, 10 % cada 2 meses (solo el día de color o corte)</option><option value="man">Man · caballeros: 10 sellos = corte gratis</option></select>
   <label for="as">Salón</label><select id="as">${Object.entries(SAL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
-  <label class="chk"><input type="checkbox" required> El cliente acepta la política de privacidad</label>
+  <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700">Ver la política de privacidad (enséñasela al cliente)</summary><div class="msgbox pol" style="white-space:normal">${POLITICA}</div></details>
+  <label class="chk"><input type="checkbox" required> El cliente ha leído y acepta la política de privacidad *</label>
+  <label class="chk"><input type="checkbox" id="amk"> Acepta recibir ofertas y avisos (opcional)</label>
   <button class="btn" type="submit" style="margin-top:14px">Crear tarjeta</button></form>`}
 };
 function render(){
@@ -341,7 +345,7 @@ function render(){
   const ec=$('ecli');if(ec)ec.onchange=()=>{sel=C.find(x=>String(x.id)===ec.value);f.cli=ec.value;phone(true);render()};
   const qp=$('qrp');if(qp&&window.qrcode){try{const g=qrcode(0,'M');g.addData(URL_APP);g.make();qp.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
   const fa=$('falta');
-  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,validada:false,n:$('an').value.trim(),e:$('ae').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
+  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,validada:false,privacidad:{version:'1.0',fecha:new Date().toISOString(),en:'salón'},marketing:$('amk').checked,n:$('an').value.trim(),e:$('ae').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
     C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea],[data-buscar]');if(!b)return;
