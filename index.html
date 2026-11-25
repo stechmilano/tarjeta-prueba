@@ -192,8 +192,8 @@ const SALONES=[
  {id:'hc',nombre:'Heron City · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Hamza',maps:'Marco Aldany Heron City Las Rozas',web:'https://stechmilano.com/marco-aldany-cc-heron-city/',reserva:'https://red.wilapp.com/profesional/marco-aldany-cc-heron-city-a4bf2b?locked=true'},
  {id:'eu',nombre:'Európolis · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Martín',maps:'Marco Aldany Európolis Las Rozas',web:'https://stechmilano.com/marco-aldany-europolis/',reserva:'https://red.wilapp.com/profesional/marco-aldany-europolis-426edd?locked=true'}];
 const WA='34665122755';
-// Enlace para escribir reseña en la ficha de Google de cada salón. PENDIENTE: poner el enlace «Pedir reseñas» de cada ficha (g.page/r/…/review).
-const RESENA={vv:'',hc:'',eu:''};
+// Enlace que abre directamente «Escribir una reseña» en la ficha de Google de cada salón.
+const RESENA={vv:'https://search.google.com/local/writereview?placeid=ChIJ2SkbqCiOQQ0RXjxuusiscWY',hc:'https://search.google.com/local/writereview?placeid=ChIJrXwhVHyDQQ0RuZqdV3w5Bhc',eu:'https://search.google.com/local/writereview?placeid=ChIJ37GYw0aDQQ0Rn8jGZDT-5rU'};
 const resenaLink=s=>RESENA[s.id]||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.maps));
 const waDuda=(s,txt)=>'https://wa.me/'+WA+'?text='+encodeURIComponent(txt||('Hola, tengo una duda sobre mi visita en Marco Aldany '+s.nombre));
 const waLink=s=>'https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, quiero pedir cita en Marco Aldany '+s.nombre);
