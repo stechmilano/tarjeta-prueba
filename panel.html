@@ -199,6 +199,16 @@ function card(c){
   <div class="msg">${msg}</div>${track(c,tipo)}</div>`}
 function phone(flash){
   const c=sel,man=c.tipo==='man';
+  if(c.pendiente){$('phone').innerHTML=`<div class="ph-h"><span class="brand">Marco Aldany</span><small>${SAL[c.s]}</small></div>
+   <div class="lcard ${c.tipo==='week'?'w':c.tipo==='color'?'c':'m'}"><div class="name">Hola, ${esc(c.n.split(' ')[0])}</div><div class="title">Tu Tarjeta ${NOM[c.tipo]} está casi lista</div><div class="msg">Acepta las condiciones para empezar a usarla.</div></div>
+   <details style="margin:8px 0"><summary style="cursor:pointer;font-weight:700">Condiciones de la tarjeta</summary><div class="msgbox pol" style="white-space:normal">${CONDICIONES}</div></details>
+   <details style="margin:8px 0"><summary style="cursor:pointer;font-weight:700">Política de privacidad</summary><div class="msgbox pol" style="white-space:normal">${POLITICA}</div></details>
+   <label class="chk"><input type="checkbox" id="pacc"> He leído y acepto las condiciones y la política de privacidad *</label>
+   <label class="chk"><input type="checkbox" id="pmk"> Quiero recibir ofertas y avisos (opcional)</label>
+   <button class="btn" id="paceptar" style="margin-top:10px">Aceptar y activar mi tarjeta</button>
+   <p class="mini">Prueba: así lo ve el cliente al abrir el correo en su móvil.</p>`;
+   const b=$('paceptar');b.onclick=()=>{if(!$('pacc').checked){toast('Tiene que marcar la casilla obligatoria');return}
+     c.pendiente=false;c.privacidad={version:'1.0',fecha:new Date().toISOString(),en:'móvil del cliente'};c.marketing=$('pmk').checked;toast('Condiciones aceptadas: tarjeta activa');phone(true);render()};return}
   $('phone').innerHTML=`<div class="ph-h"><span class="brand">Marco Aldany</span><small>${SAL[c.s]}</small></div>
   <div class="qrbox"><div class="qr" id="qr">${c.cod}</div><div><b>Hola, ${esc(c.n.split(' ')[0])}</b><p>Tarjeta ${NOM[c.tipo]} · ${c.cod}</p><div class="bar"><svg id="bc"></svg></div><p>${man?'Enséñala al pagar y suma tu sello.':'Enséñala al pagar: tu descuento se aplica solo en todos tus servicios.'}</p></div></div>
   <div class="${flash?'flash':''}">${card(c)}
@@ -231,6 +241,7 @@ function registrarScan(raw){
   const c=C.find(x=>x.cod===code);
   if(!c){ultimo={tipo:'err',txt:'No encuentro ninguna tarjeta con el código '+code};render();return}
   sel=c;f.cli=String(c.id);
+  if(c.pendiente){ultimo={tipo:'err',c,txt:'Aún no ha aceptado las condiciones. Pídele que abra el correo de su tarjeta y las acepte. No se registra la visita.'};phone(true);render();return}
   const reini=revisarReinicio(c,HOY,c.s);
   if(soloProd){soloProd=false;ultimo={tipo:'ok',c,txt:'Solo compra de productos: no se registra visita ni sello.',acc:'Sin descuento de tarjeta en productos'};phone(true);render();return}
   if(c.ultScan===HOY||(c.tipo!=='man'&&c[c.tipo].includes(HOY))){ultimo={tipo:'warn',c,txt:'Esta tarjeta ya se registró hoy. No se suma otra visita.',acc:accion(c,pctDe(c))};phone(true);render();return}
@@ -263,7 +274,7 @@ escanear(){
   ${busq.trim().length>=2?(()=>{const q=busq.trim().toLowerCase(),r=C.filter(c=>c.n.toLowerCase().includes(q)||c.t.includes(q.replace(/\s/g,'')));
     return r.length?`<div class="list" style="display:grid;gap:6px;margin-top:8px">${r.slice(0,6).map(c=>`<button class="btn sec" style="justify-content:space-between" data-buscar="${c.cod}"><span>${esc(c.n)}</span><span class="mini">${NOM[c.tipo]} · ${esc(c.t)}</span></button>`).join('')}</div>`:'<p class="mini">No hay ningún cliente con ese nombre o teléfono.</p>'})():''}
   ${ultimo?`<div class="res ${ultimo.tipo}">${ultimo.c?`<span>${NOM[ultimo.c.tipo]} · ${SAL[ultimo.c.s]} · ${ultimo.c.cod}</span><b class="big">${esc(ultimo.c.n)}</b>`:''}<div>${esc(ultimo.txt)}</div>${ultimo.acc?`<div class="acc">${esc(ultimo.acc)}</div>`:''}
-   ${ultimo.canjear?'<button class="btn" style="margin-top:10px;background:#fff;color:#1b1619" id="canj">Corte gratis aplicado: poner sellos a 0</button>':''}${ultimo.c?tramosHtml(ultimo.c):''}${ultimo.ptsTxt?`<div class="acc">${esc(ultimo.ptsTxt)}</div>`:''}</div>`:''}
+   ${ultimo.canjear?'<button class="btn" style="margin-top:10px;background:#fff;color:#1b1619" id="canj">Corte gratis aplicado: poner sellos a 0</button>':''}${ultimo.c&&ultimo.tipo!=='err'?tramosHtml(ultimo.c):''}${ultimo.ptsTxt?`<div class="acc">${esc(ultimo.ptsTxt)}</div>`:''}</div>`:''}
   <h3>Registradas hoy</h3>${(()=>{const hoy=C.filter(c=>c.ultScan===HOY);return hoy.length?hoy.map(c=>`<div class="mov hist"><span>${esc(c.n)}<small>${NOM[c.tipo]} · ${SAL[c.s]}</small></span><b>${c.tipo==='man'?Math.min(c.sellos,10)+'/10':pctDe(c)+' %'}</b></div>`).join(''):'<p class="mini">Aún ninguna.</p>'})()}
   <p class="mini" style="margin-top:12px">Para probar sin escáner: escribe un código (por ejemplo ${C[0].cod}) y pulsa Intro.</p>`},
 cobro(){const c=C.find(x=>String(x.id)===f.cli)||C[0],k=calc(c),man=c.tipo==='man';
@@ -286,7 +297,7 @@ clientes(){
   <div class="scroll"><table class="stack"><thead><tr><th>Cliente</th><th>Salón de alta</th><th>Tarjeta</th><th>Estado</th><th class="n">Puntos</th><th>Reinicio</th><th>Última visita</th></tr></thead><tbody>
   ${C.map(c=>{const ult=[...c.week,...c.color].sort().pop();
    return `<tr class="${c===sel?'sel':''}"><td data-l="Cliente"><button class="lnk" data-ver="${c.id}">${esc(c.n)}</button></td><td data-l="Salón de alta">${SAL[c.s]}</td>
-   <td data-l="Tarjeta">${NOM[c.tipo]}</td><td data-l="Estado">${estadoTxt(c)}</td>
+   <td data-l="Tarjeta">${NOM[c.tipo]}</td><td data-l="Estado">${c.pendiente?'<span class="warn">pendiente de aceptar</span>':estadoTxt(c)}</td>
    <td data-l="Puntos" class="n">${c.puntos}</td><td data-l="Reinicio">${(d=>d.getDate()+'/'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2))(proxReinicio(c.alta,HOY))}</td><td data-l="Última visita">${ult?fecha(ult):'—'}</td></tr>`}).join('')}
   </tbody></table></div>`},
 avisos(){
@@ -329,8 +340,7 @@ alta(){
   <label for="as">Salón</label><select id="as">${Object.entries(SAL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
   <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700">Ver las condiciones de la tarjeta</summary><div class="msgbox pol" style="white-space:normal">${CONDICIONES}</div></details>
   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">Ver la política de privacidad</summary><div class="msgbox pol" style="white-space:normal">${POLITICA}</div></details>
-  <label class="chk"><input type="checkbox" required> El cliente ha leído y acepta las condiciones y la política de privacidad *</label>
-  <label class="chk"><input type="checkbox" id="amk"> Acepta recibir ofertas y avisos (opcional)</label>
+  <p class="mini" style="margin-top:10px">El cliente <b>acepta las condiciones y la privacidad en su propio móvil</b>, al abrir el correo con su tarjeta. Hasta entonces, la tarjeta no registra visitas.</p>
   <button class="btn" type="submit" style="margin-top:14px">Crear tarjeta</button></form>`}
 };
 function render(){
@@ -354,7 +364,7 @@ function render(){
   const ec=$('ecli');if(ec)ec.onchange=()=>{sel=C.find(x=>String(x.id)===ec.value);f.cli=ec.value;phone(true);render()};
   const qp=$('qrp');if(qp&&window.qrcode){try{const g=qrcode(0,'M');g.addData(URL_APP);g.make();qp.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
   const fa=$('falta');
-  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,validada:false,alta:HOY,ciclo:HOY,condiciones:'1.0',privacidad:{version:'1.0',fecha:new Date().toISOString(),en:'salón'},marketing:$('amk').checked,n:$('an').value.trim(),e:$('ae').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
+  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,validada:false,alta:HOY,ciclo:HOY,condiciones:'1.0',pendiente:true,privacidad:null,marketing:false,n:$('an').value.trim(),e:$('ae').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
     C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-reenvio],[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea],[data-buscar]');if(!b)return;
