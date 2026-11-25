@@ -166,7 +166,7 @@ const C=[
  ['Daniel Ortega','hc','man',10],['Pilar Navarro','vv','color',[0,1]],['Sergio Ramos','vv','man',3]
 ].map(([n,s,tipo,h],i)=>({id:i+1,n,s,tipo,t:'6'+String(10000000+i*1234567).slice(0,8),cod:'MA'+(482110+i*37),
   week:tipo==='week'?h.map(hace):[],color:tipo==='color'?h.map(mesAtras):[],sellos:tipo==='man'?h:0,puntos:[180,40,95,260,0,30,55,70,0][i],movs:[]}));
-let ultimo=null,sel=C[0],tab='escanear',f={marca:true,gratis:false,pc:'15',serv:'',prod:'',usar:false,cli:String(C[0].id)};
+let busq='',ultimo=null,sel=C[0],tab='escanear',f={marca:true,gratis:false,pc:'15',serv:'',prod:'',usar:false,cli:String(C[0].id)};
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2400)}
 
@@ -198,7 +198,7 @@ function phone(flash){
 }
 
 // ---- panel del salón ----
-const TABS=[['escanear','Escanear'],['cobro','Cobrar'],['clientes','Clientes'],['alta','Alta'],['enviar','Enviar tarjeta'],['avisos','Avisar'],['resumen','Resumen']];
+const TABS=[['escanear','Escanear'],['clientes','Clientes'],['alta','Alta'],['enviar','Enviar tarjeta'],['avisos','Avisar'],['resumen','Resumen']];
 const URL_APP='https://stechmilano.com/tarjeta';
 const pill=p=>`<span class="pill p${p}">${p} %</span>`;
 const estadoTxt=c=>c.tipo==='man'?`<span class="pill pm">${Math.min(c.sellos,10)}/10 sellos</span>${c.sellos>=10?' <span class="warn">corte gratis</span>':''}`
@@ -244,6 +244,9 @@ escanear(){
   return `<h2>Escanear tarjeta</h2><p class="mini">Con el escáner, apunta al QR o al código de barras del móvil del cliente. La visita se registra sola; después toca el gasto del día y se suman sus puntos.</p>
   <form id="fscan" class="scanbox" autocomplete="off"><span class="ico">Listo para escanear</span><span class="mini">Si el cursor no está en la caja, haz clic en ella.</span>
   <input id="scan" aria-label="Código de la tarjeta" placeholder="Código de tarjeta" autocomplete="off" autocapitalize="characters" spellcheck="false"></form>
+  <label for="busq">¿No lleva el móvil? Búscalo por nombre o teléfono</label><input id="busq" value="${esc(busq)}" placeholder="Ej.: Elena o 612" autocomplete="off">
+  ${busq.trim().length>=2?(()=>{const q=busq.trim().toLowerCase(),r=C.filter(c=>c.n.toLowerCase().includes(q)||c.t.includes(q.replace(/\s/g,'')));
+    return r.length?`<div class="list" style="display:grid;gap:6px;margin-top:8px">${r.slice(0,6).map(c=>`<button class="btn sec" style="justify-content:space-between" data-buscar="${c.cod}"><span>${esc(c.n)}</span><span class="mini">${NOM[c.tipo]} · ${esc(c.t)}</span></button>`).join('')}</div>`:'<p class="mini">No hay ningún cliente con ese nombre o teléfono.</p>'})():''}
   ${ultimo?`<div class="res ${ultimo.tipo}">${ultimo.c?`<span>${NOM[ultimo.c.tipo]} · ${SAL[ultimo.c.s]} · ${ultimo.c.cod}</span><b class="big">${esc(ultimo.c.n)}</b>`:''}<div>${esc(ultimo.txt)}</div>${ultimo.acc?`<div class="acc">${esc(ultimo.acc)}</div>`:''}
    ${ultimo.canjear?'<button class="btn" style="margin-top:10px;background:#fff;color:#1b1619" id="canj">Corte gratis aplicado: poner sellos a 0</button>':''}${ultimo.c?tramosHtml(ultimo.c):''}${ultimo.ptsTxt?`<div class="acc">${esc(ultimo.ptsTxt)}</div>`:''}</div>`:''}
   <h3>Registradas hoy</h3>${(()=>{const hoy=C.filter(c=>c.ultScan===HOY);return hoy.length?hoy.map(c=>`<div class="mov hist"><span>${esc(c.n)}<small>${NOM[c.tipo]} · ${SAL[c.s]}</small></span><b>${c.tipo==='man'?Math.min(c.sellos,10)+'/10':pctDe(c)+' %'}</b></div>`).join(''):'<p class="mini">Aún ninguna.</p>'})()}
@@ -327,7 +330,8 @@ function render(){
     const r=[k.pct?'−'+k.pct+' %':'',sello,k.pts?'−'+k.pts+' pts':'',k.gana?'+'+k.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
     c.movs.push({f:HOY,s:c.s,t:(k.gratis?'Corte gratis':f.marca?{week:'Visita semanal',color:'Color / corte',man:'Corte / degradado'}[c.tipo]:'Visita')+' · '+eur(k.cobrar),r,dto:k.dto+k.dpts,cobrado:k.cobrar,gratis:k.gratis});
     Object.assign(f,{marca:c.tipo==='week',gratis:false,serv:'',prod:'',usar:false});sel=c;toast('Cobro registrado · '+r);phone(true);render()};
-  const fs=$('fscan');if(fs){const inp=$('scan');fs.onsubmit=e=>{e.preventDefault();const v=inp.value;inp.value='';registrarScan(v)};setTimeout(()=>{try{inp.focus()}catch(e){}},0)}
+  const fs=$('fscan');if(fs){const inp=$('scan');fs.onsubmit=e=>{e.preventDefault();const v=inp.value;inp.value='';registrarScan(v)};if(!busq)setTimeout(()=>{try{inp.focus()}catch(e){}},0)}
+  const bq=$('busq');if(bq){bq.oninput=()=>{busq=bq.value;const p=bq.selectionStart;render();const n=$('busq');n.focus();try{n.setSelectionRange(p,p)}catch(e){}}}
   const cj=$('canj');if(cj)cj.onclick=()=>{const c=ultimo.c;c.sellos=0;c.ultScan=HOY;c.movs.push({f:HOY,s:c.s,t:'Corte gratis canjeado',r:'sellos a 0',dto:0,cobrado:0,gratis:true});ultimo={tipo:'ok',c,txt:'Corte gratis canjeado. La tarjeta vuelve a 0/10.'};phone(true);render()};
   const ec=$('ecli');if(ec)ec.onchange=()=>{sel=C.find(x=>String(x.id)===ec.value);f.cli=ec.value;phone(true);render()};
   const qp=$('qrp');if(qp&&window.qrcode){try{const g=qrcode(0,'M');g.addData(URL_APP);g.make();qp.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
@@ -335,7 +339,8 @@ function render(){
   if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,n:$('an').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
     C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea]');if(!b)return;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea],[data-buscar]');if(!b)return;
+  if(b.dataset.buscar){busq='';registrarScan(b.dataset.buscar);return}
   if(b.dataset.tramo&&ultimo&&ultimo.c){const c=ultimo.c,[a,z,p]=TRAMOS[+b.dataset.tramo];c.puntos+=p;c.ptsHoy=HOY;
     c.movs.push({f:HOY,s:c.s,t:'Gasto '+(z?a+'–'+z+' €':'+'+a+' €'),r:'+'+p+' pts',dto:0,cobrado:0});ultimo.ptsTxt='+'+p+' puntos sumados';phone(true);render();return}
   if(b.dataset.canjea&&ultimo&&ultimo.c){const c=ultimo.c,p=+b.dataset.canjea;if(c.puntos<p)return;c.puntos-=p;
