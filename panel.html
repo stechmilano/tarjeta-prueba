@@ -291,9 +291,9 @@ clientes(){
   </tbody></table></div>`},
 avisos(){
   const lista=C.filter(c=>avisoTexto(c));
-  return `<h2>Clientes a los que conviene avisar</h2><p class="mini">Week y Color &amp; Cut: a punto de perder su descuento. Man: les falta 1 sello o tienen un corte gratis. Un mensaje a tiempo llena huecos de agenda.</p>
-  ${lista.length?lista.map(c=>`<h3>${esc(c.n)} · ${NOM[c.tipo]} · ${SAL[c.s]}</h3><div class="msgbox">${esc(avisoTexto(c))}</div><button class="btn sec" data-copy="${c.id}">Copiar mensaje</button>`).join(''):'<p class="mini">Ahora mismo no hay nadie a quien avisar.</p>'}
-  <p class="mini" style="margin-top:14px">En la versión real se pueden enviar solos por WhatsApp desde el bot, por ejemplo cada lunes y el día 1 de cada mes.</p>`},
+  return `<h2>Clientes a los que conviene avisar</h2><p class="mini">Week y Color &amp; Cut: a punto de perder su descuento. Man: les falta 1 sello o tienen un corte gratis. Un aviso a tiempo llena huecos de agenda.</p>
+  ${lista.length?lista.map(c=>`<h3>${esc(c.n)} · ${NOM[c.tipo]} · ${SAL[c.s]}</h3><div class="msgbox">${esc(avisoTexto(c))}</div>${c.marketing===false?'<p class="mini">No aceptó recibir avisos: no se le envía.</p>':`<button class="btn sec" data-copy="${c.id}">Copiar texto</button>`}`).join(''):'<p class="mini">Ahora mismo no hay nadie a quien avisar.</p>'}
+  <p class="mini" style="margin-top:14px">En la versión real se envían solos <b>por correo</b> (gratis), cada lunes y el día 1 de cada mes, solo a quien aceptó recibir avisos.</p>`},
 resumen(){
   const cnt=t=>C.filter(c=>c.tipo===t).length,a20=C.filter(c=>pctDe(c)===20).length,a10=C.filter(c=>pctDe(c)===10).length;
   const mes=HOY.slice(0,7),movs=C.flatMap(c=>c.movs).filter(m=>m.f.startsWith(mes));
@@ -307,15 +307,13 @@ resumen(){
   ${movs.length?`<h3>Cobros con tarjeta este mes</h3><div class="sum"><div><span>Facturado</span><span>${eur(cob)}</span></div><div><span>Descuento por tarjetas</span><span>${eur(dto)}</span></div><div><span>Cortes gratis Man canjeados</span><span>${gratis}</span></div><div><span>Descuento medio</span><span>${(dto/(cob+dto)*100).toFixed(1).replace('.',',')} %</span></div></div>`:''}
   <p class="mini">En la versión real añadiríamos: cuántas veces viene de media cada cliente antes y después de la tarjeta, y cuánto factura cada uno al año.</p>`},
 enviar(){
-  const c=sel,tel='34'+String(c.t).replace(/\D/g,'').slice(-9),txt=bienvenida(c);
-  return `<h2>Enviar la tarjeta</h2><p class="mini">Elige cómo le llega a cada cliente. Las tres formas se pueden usar a la vez.</p>
+  const c=sel,txt=bienvenida(c);
+  return `<h2>Enviar la tarjeta</h2><p class="mini">Dos formas, que se pueden usar a la vez. Si el cliente está en el salón, lo más rápido es que escanee el QR del cartel con su móvil.</p>
   <label for="ecli">Cliente</label><select id="ecli">${C.map(x=>`<option value="${x.id}" ${x===c?'selected':''}>${esc(x.n)} · ${esc(x.t)}</option>`).join('')}</select>
-  <h3>Mensaje de bienvenida</h3><div class="msgbox">${esc(txt)}</div>
+  <h3>Correo de bienvenida</h3><div class="msgbox">${esc(txt)}</div>
   <div class="opts">
-   <div class="optc"><b>1 · Por correo, automático y gratis</b><p>En la versión real, al crear la tarjeta le llega solo un correo con su enlace. Nadie tiene que hacer nada y no cuesta nada.</p></div>
-   <div class="optc"><b>2 · Desde el WhatsApp del salón, gratis</b><p>Para quien no mire el correo. Se abre WhatsApp en el móvil o el ordenador del salón con el mensaje ya escrito; solo hay que pulsar enviar. Al mandarlo a mano desde la app, no tiene coste.</p>
-    <div class="row2"><a class="btn" href="https://wa.me/${tel}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Abrir WhatsApp</a><button class="btn sec" data-copyt="1">Copiar mensaje</button></div></div>
-   <div class="optc"><b>3 · Que se la active el propio cliente</b><p>Con un cartel con QR en el espejo y en recepción, el enlace en la bio de Instagram y una historia. El cliente escanea, pone su móvil y recibe su tarjeta.</p></div>
+   <div class="optc"><b>1 · Por correo, automático y gratis</b><p>En la versión real, al crear la tarjeta le llega solo un correo con su enlace. Nadie tiene que hacer nada y no cuesta nada.</p><button class="btn sec" data-reenvio="1">Reenviar el correo a ${esc(c.e||'este cliente')}</button></div>
+   <div class="optc"><b>2 · Que se la active el propio cliente</b><p>Con un cartel con QR en el espejo y en recepción, el enlace en la bio de Instagram y una historia. El cliente escanea, pone su móvil y recibe su tarjeta.</p></div>
   </div>
   <h3>Cartel para el salón</h3>
   <div class="poster"><div class="qr" id="qrp"></div><div><b>Elige tu tarjeta gratis</b><p>Week y Color &amp; Cut: hasta un 20 % en todos tus servicios. Man: con 10 cortes, uno gratis. Escanea y actívala.</p></div></div>
@@ -359,7 +357,8 @@ function render(){
   if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,validada:false,alta:HOY,ciclo:HOY,condiciones:'1.0',privacidad:{version:'1.0',fecha:new Date().toISOString(),en:'salón'},marketing:$('amk').checked,n:$('an').value.trim(),e:$('ae').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
     C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea],[data-buscar]');if(!b)return;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-reenvio],[data-tab],[data-ver],[data-copy],[data-copyt],[data-tramo],[data-canjea],[data-buscar]');if(!b)return;
+  if(b.dataset.reenvio){toast('Prueba: en la versión real se reenvía el correo con el enlace');return}
   if(b.dataset.buscar){busq='';registrarScan(b.dataset.buscar);return}
   if(b.dataset.tramo&&ultimo&&ultimo.c){const c=ultimo.c,[a,z,p]=TRAMOS[+b.dataset.tramo];c.puntos+=p;c.ptsHoy=HOY;
     c.movs.push({f:HOY,s:c.s,t:'Gasto '+(z?a+'–'+z+' €':'+'+a+' €'),r:'+'+p+' pts',dto:0,cobrado:0});ultimo.ptsTxt='+'+p+' puntos sumados';phone(true);render();return}
