@@ -134,6 +134,17 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
 .pass .pf span{font-weight:800;font-size:17px}
 .pass .pq{background:#fff;padding:14px;display:grid;place-items:center;color:#1b1619;font-size:12px;font-weight:700;gap:4px}
 .pass .pq .qr{width:120px;height:120px;padding:0}
+.lcard.b{background:linear-gradient(135deg,#14161c 0%,#2c3340 60%,#4a5568 120%)}
+.stamps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0 4px;position:relative}
+.stamp{aspect-ratio:1;border-radius:50%;border:2px dashed rgba(255,255,255,.45);display:grid;place-items:center;font-weight:800;font-size:14px;color:rgba(255,255,255,.7)}
+.stamp.on{border:0;background:#fff;color:#1b1619}.stamp svg{width:58%;height:58%}
+.stamp.gift{border-color:#f5c26b;color:#f5c26b}
+.choose{display:grid;gap:10px;margin:12px 0}
+.choice{border:0;border-radius:20px;padding:16px;text-align:left;color:#fff;cursor:pointer;font:15px/1.4 Manrope,sans-serif;position:relative;overflow:hidden}
+.choice b{font:400 24px/1.1 'DM Serif Display',serif;display:block;margin-bottom:4px}
+.choice .who{font-size:12px;font-weight:800;opacity:.85;display:block;margin-bottom:2px}
+.choice ul{margin:8px 0 0;padding-left:18px;font-size:14px;opacity:.95}
+.choice.w{background:var(--week)}.choice.c{background:var(--color)}.choice.b{background:linear-gradient(135deg,#14161c 0%,#2c3340 60%,#4a5568 120%)}
 .pop{animation:pop .5s ease-out}
 @keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}.pop{animation:none}}
@@ -151,9 +162,9 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
     <nav id="nav"></nav>
   </div>
   <div class="notes">
-    <h1>Tus tarjetas Week y Color, en el móvil del cliente</h1>
+    <h1>Tarjetas Week, Color y Man, en el móvil del cliente</h1>
     <p>El cliente ve en todo momento qué descuento tiene y hasta qué día lo mantiene. Eso es lo que le hace volver.</p>
-    <p>Prueba: mira «Tarjetas», pide una cita de peinado o color (sale el precio con descuento) y registra un cobro desde «Recepción».</p>
+    <p>Prueba: en «Tarjeta» elige una de las tres, actívala, pide una cita (sale el precio con descuento) y registra un cobro desde «Recepción».</p>
     <p>Semanas de lunes a domingo y meses naturales: cuenta la semana o el mes de la visita, no el día exacto.</p>
   </div>
 </div>
@@ -191,10 +202,10 @@ const ICON={
  tarjetas:'<rect x="2" y="7" width="16" height="11" rx="2"/><path d="M6 4h14a2 2 0 0 1 2 2v9"/>',
  promos:'<path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/>',
  salon:'<path d="M12 21s-7-6-7-12a7 7 0 0 1 14 0c0 6-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>'};
-const TABS=[['inicio','Inicio'],['cita','Cita'],['tarjetas','Tarjetas'],['promos','Promos'],['salon','Salón']];
+const TABS=[['inicio','Inicio'],['cita','Cita'],['tarjetas','Tarjeta'],['promos','Promos'],['salon','Salón']];
 const DECO='<svg class="deco" viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="2"><path d="M20 180C60 120 40 60 100 20M45 185C85 125 65 65 125 25M70 190C110 130 90 70 150 30M95 195C135 135 115 75 175 35"/></svg>';
 
-const store={get(k,d){try{const v=localStorage.getItem('ma3_'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('ma3_'+k,JSON.stringify(v))}catch(e){}}};
+const store={get(k,d){try{const v=localStorage.getItem('ma4_'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('ma4_'+k,JSON.stringify(v))}catch(e){}}};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const dt=s=>new Date(s+'T12:00');
@@ -217,7 +228,7 @@ const TARJ={
  color:{nombre:'Tarjeta Color',sub:'Coloración',idx:mesIdx,ud:'este mes',
    fin:i=>{const y=Math.floor(i/12),m=i%12,d=new Date(y,m+1,0);return d.getDate()+' de '+MESL[m]}}};
 function estado(tipo){
-  const T=TARJ[tipo],vis=tarjeta?tarjeta[tipo]:[];if(!vis.length)return {pct:0,ult:null};
+  const T=TARJ[tipo],vis=tarjeta&&tarjeta.tipo===tipo?tarjeta[tipo]:[];if(!vis.length)return {pct:0,ult:null};
   const ult=vis.slice().sort().pop(),u=T.idx(ult),hoy=T.idx(HOY()),dif=hoy-u;
   return {pct:dif<=1?20:dif===2?10:0,ult,u,dif,hasta20:T.fin(u+1),hasta10:T.fin(u+2)};
 }
@@ -227,7 +238,10 @@ const nuevoCod=()=>'MA'+String(Math.floor(100000+Math.random()*899999));
 function demoHistorial(){
   const h=new Date(),a=n=>{const d=new Date(h);d.setDate(d.getDate()-n);return iso(d)};
   const m=n=>iso(new Date(h.getFullYear(),h.getMonth()-n,10));
-  tarjeta.week=[a(7),a(14),a(28),a(35)];tarjeta.color=[m(1),m(2),m(3)];tarjeta.puntos=180;store.set('tarjeta',tarjeta)}
+  if(tarjeta.tipo==='week')tarjeta.week=[a(7),a(14),a(28),a(35)];
+  if(tarjeta.tipo==='color')tarjeta.color=[m(1),m(2),m(3)];
+  if(tarjeta.tipo==='caballero')tarjeta.sellos=9;
+  tarjeta.puntos=180;store.set('tarjeta',tarjeta)}
 let citas=store.get('citas',[]);
 let st={tab:'inicio',salon:store.get('salon','eu'),paso:'familia',fam:null,serv:null,dia:null,hora:null};
 const $=id=>document.getElementById(id);
@@ -256,8 +270,8 @@ function abrirInst(nueva){
 function abrirWallet(){
   const ios=instSO==='ios',pc=tarjeta?pctHoy():0,nom=tarjeta&&tarjeta.nombre?tarjeta.nombre:'Cliente';
   abrirSheet(`<h2 style="margin-top:0">Así queda en tu cartera</h2>
-  <div class="pass"><div class="ph"><b>Marco Aldany</b><span style="font-weight:800">${pc} %</span></div>
-   <div class="pf"><div><small>WEEK</small><span>${tarjeta?estado('week').pct:0} %</span></div><div><small>COLOR</small><span>${tarjeta?estado('color').pct:0} %</span></div><div><small>PUNTOS</small><span>${tarjeta?tarjeta.puntos:0}</span></div></div>
+  <div class="pass" style="background:${tarjeta&&tarjeta.tipo==='caballero'?'linear-gradient(135deg,#14161c,#4a5568)':tarjeta&&tarjeta.tipo==='color'?'var(--color)':'var(--week)'}"><div class="ph"><b>Marco Aldany</b></div>
+   <div class="pf"><div><small>TARJETA</small><span>${tarjeta?NOMBRE[tarjeta.tipo]:''}</span></div><div><small>${tarjeta&&tarjeta.tipo==='caballero'?'SELLOS':'DESCUENTO'}</small><span>${tarjeta?(tarjeta.tipo==='caballero'?Math.min(tarjeta.sellos||0,10)+'/10':pc+' %'):''}</span></div><div><small>PUNTOS</small><span>${tarjeta?tarjeta.puntos:0}</span></div></div>
    <div class="pf" style="grid-template-columns:1fr"><div><small>CLIENTE</small><span>${esc(nom)}</span></div></div>
    <div class="pq"><div class="qr" id="qrw"></div>${tarjeta?tarjeta.cod:''}</div></div>
   <p class="empty">Se actualiza sola cuando cambia tu descuento, y te avisa en la pantalla de bloqueo antes de perderlo.</p>
@@ -280,11 +294,17 @@ function huecos(dia,min){
   }return res}
 // descuento que tendría el cliente en una fecha concreta para un servicio
 function pctEn(serv,dia){
-  if(!tarjeta)return 0;let best=0;
-  for(const tipo of ['week','color']){const T=TARJ[tipo],vis=tarjeta[tipo].filter(v=>v<=dia);if(!vis.length)continue;
-    const dif=T.idx(dia)-T.idx(vis.sort().pop());best=Math.max(best,dif<=1?20:dif===2?10:0)}
-  return best}
-const pctHoy=()=>Math.max(estado('week').pct,estado('color').pct);
+  if(!tarjeta||!TARJ[tarjeta.tipo])return 0;const tipo=tarjeta.tipo,T=TARJ[tipo],vis=tarjeta[tipo].filter(v=>v<=dia);if(!vis.length)return 0;
+  const dif=T.idx(dia)-T.idx(vis.sort().pop());return dif<=1?20:dif===2?10:0}
+const NOMBRE={week:'Week',color:'Color',caballero:'Man'};
+const STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"/></svg>';
+const GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>';
+function sellosHtml(){const n=tarjeta.sellos||0,lleno=n>=10;
+  return `<div class="lcard b pop">${DECO}<div class="top"><div><div class="name">Solo caballeros</div><div class="title">Tarjeta Man</div></div><div class="pct" style="font-size:52px">${Math.min(n,10)}/10<small>sellos</small></div></div>
+  <div class="msg">${lleno?'<b>¡Tienes un corte gratis!</b> Dilo al pagar en tu próxima visita.':n===9?'<b>¡Solo te falta 1!</b> Tu próximo corte suma el último sello.':`Te faltan <b>${10-n} cortes</b> para tu corte gratis.`}</div>
+  <div class="stamps">${Array.from({length:10},(_,i)=>`<div class="stamp ${i<n?'on':''} ${i===9&&n<10?'gift':''}">${i<n?STAR:i===9?GIFT:i+1}</div>`).join('')}</div>
+  <ul class="rules"><li>Cada corte de caballero suma 1 sello.</li><li>Con 10 sellos, el siguiente corte es gratis.</li></ul></div>`}
+const pctHoy=()=>tarjeta&&TARJ[tarjeta.tipo]?estado(tarjeta.tipo).pct:0;
 function trackHtml(tipo){
   const T=TARJ[tipo],hoy=T.idx(HOY()),n=tipo==='week'?8:6,set=new Set(tarjeta[tipo].map(T.idx));
   const cells=Array.from({length:n},(_,k)=>{const i=hoy-n+1+k;let lab;
@@ -306,10 +326,13 @@ function cardHtml(tipo){
 const V={
 inicio(){
   const prox=citas.filter(c=>c.dia>=HOY()).sort((a,b)=>(a.dia+hm(a.ini)).localeCompare(b.dia+hm(b.ini)))[0];
-  const w=estado('week'),c=estado('color');
-  const tiles=tarjeta?`<button class="tile w" data-go="tarjetas"><span class="pct">${w.pct} %</span><span>Week<small>${w.pct===20?'Hasta el '+w.hasta20.replace('sábado ','sáb '):w.pct?'Sube al 20 % viniendo':'Actívala esta semana'}</small></span></button>
-   <button class="tile c" data-go="tarjetas"><span class="pct">${c.pct} %</span><span>Color<small>${c.pct===20?'Hasta el '+c.hasta20:c.pct?'Sube al 20 % viniendo':'Actívala este mes'}</small></span></button>`
-   :`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Activa gratis tus tarjetas Week y Color<small>En todos tus servicios, por venir con frecuencia</small></span></button>`;
+  let tiles;
+  if(!tarjeta)tiles=`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Elige tu tarjeta gratis: Week, Color o Man<small>Ventajas por venir con frecuencia</small></span></button>`;
+  else if(tarjeta.tipo==='caballero')tiles=`<button class="tile" style="background:linear-gradient(135deg,#14161c,#4a5568)" data-go="tarjetas"><span class="pct">${Math.min(tarjeta.sellos||0,10)}/10</span><span>Man<small>${(tarjeta.sellos||0)>=10?'¡Corte gratis!':'Sellos para tu corte gratis'}</small></span></button>
+   <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)}</small></button>`;
+  else{const e=estado(tarjeta.tipo),w=tarjeta.tipo==='week';
+   tiles=`<button class="tile ${w?'w':'c'}" data-go="tarjetas"><span class="pct">${e.pct} %</span><span>${NOMBRE[tarjeta.tipo]}<small>${e.pct===20?'Hasta el '+e.hasta20.replace('sábado ','sáb '):e.pct?'Sube al 20 % viniendo':(w?'Actívala esta semana':'Actívala este mes')}</small></span></button>
+   <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)}</small></button>`}
   return `<div class="hero">${DECO}<b>${prox?'Tu próxima cita':'Tu momento de salón'}</b>
   <p>${prox?esc(prox.serv)+' · '+fecha(prox.dia)+' a las '+hm(prox.ini)+' · '+esc(SALONES.find(s=>s.id===prox.salon).nombre):'Reserva en menos de un minuto y mira tu precio con descuento antes de confirmar.'}</p>
   <button class="btn light" data-go="cita">${prox?'Ver mis citas':'Pedir cita'}</button></div>
@@ -333,7 +356,7 @@ cita(){
   if(st.paso==='hora'){
     const s=SERVICIOS[st.serv],ds=dias();if(!st.dia)st.dia=ds[0];
     const hs=huecos(st.dia,s.min),pc=pctEn(s,st.dia);
-    return `<button class="back" data-paso="servicio">‹ Volver</button><h2>¿Cuándo?</h2><p class="empty">${s.n} · ${s.min} min${tarjeta?` · <b>${pc} % con tus tarjetas ese día</b>`:''}</p>
+    return `<button class="back" data-paso="servicio">‹ Volver</button><h2>¿Cuándo?</h2><p class="empty">${s.n} · ${s.min} min${tarjeta&&TARJ[tarjeta.tipo]?` · <b>${pc} % con tu tarjeta ese día</b>`:''}${tarjeta&&tarjeta.tipo==='caballero'&&s.barb?' · <b>suma 1 sello</b>':''}</p>
     <div class="chips">${ds.map(d=>{const x=dt(d);return `<button class="chip ${d===st.dia?'sel':''}" data-dia="${d}"><small>${DIAS[x.getDay()]}</small>${x.getDate()} ${MESES[x.getMonth()]}</button>`}).join('')}</div>
     <h3>Horas libres</h3>${hs.length?`<div class="times">${hs.map(m=>`<button class="chip" data-hora="${m}">${hm(m)}</button>`).join('')}</div>`:'<p class="empty">Este día no quedan huecos. Prueba otro.</p>'}`}
   if(st.paso==='datos'){
@@ -341,7 +364,7 @@ cita(){
     return `<button class="back" data-paso="hora">‹ Volver</button><h2>Confirma tu cita</h2>
     <div class="sum"><div><span>Salón</span><span>${esc(salon().nombre)}</span></div><div><span>Servicio</span><span>${s.n}</span></div>
     <div><span>Día</span><span>${fecha(st.dia)}, ${hm(st.hora)}</span></div><div><span>Profesional</span><span>${s.barb?esc(salon().barbero):'Sin preferencia'}</span></div>
-    <div><span>Precio</span><span>${eur(s.p)}</span></div>${pc?`<div><span>Tu tarjeta Week / Color</span><span>− ${pc} %</span></div>`:''}
+    <div><span>Precio</span><span>${eur(s.p)}</span></div>${pc?`<div><span>Tu tarjeta ${NOMBRE[tarjeta.tipo]}</span><span>− ${pc} %</span></div>`:''}
     <div class="tot"><span>Pagarás</span><span>${eur(s.p*(1-pc/100))}</span></div></div>
     <form id="f"><label for="nom">Nombre</label><input id="nom" autocomplete="name" required value="${esc(cli.n)}">
     <label for="tel">Teléfono</label><input id="tel" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +]{9,15}" value="${esc(cli.t)}">
@@ -349,9 +372,15 @@ cita(){
 },
 tarjetas(){
   if(st.recep)return V.recepcion();
-  if(!tarjeta){const a=st.alta||(st.alta={paso:1,n:'',t:''});
-    if(a.paso===1)return `<div class="lcard w pop">${DECO}<div class="title" style="font-size:32px;position:relative">Hasta un 20 % en todos tus servicios</div>
-     <div class="msg">${esc(salon().nombre)} · Activa gratis tus tarjetas <b>Week</b> (peinados) y <b>Color</b> (coloración). Cuanto más a menudo vienes, más ahorras.</div></div>
+  if(!tarjeta){const a=st.alta||(st.alta={paso:0,tipo:null,n:'',t:''});
+    if(a.paso===0)return `<h2>Elige tu tarjeta</h2><p class="empty">${esc(salon().nombre)} · Es gratis. Elige la que más te encaje: solo se puede tener una.</p>
+     <div class="choose">
+      <button class="choice w" data-elige="week"><span class="who">Si vienes a peinarte</span><b>Tarjeta Week</b>Hasta un 20 % en todos tus servicios.<ul><li>Péinate cada semana: 20 %.</li><li>Cada 15 días: 10 %.</li></ul></button>
+      <button class="choice c" data-elige="color"><span class="who">Si te haces el color</span><b>Tarjeta Color</b>Hasta un 20 % en todos tus servicios.<ul><li>Color cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>
+      <button class="choice b" data-elige="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>
+     </div><p class="empty">Week y Color: cuenta la semana o el mes de tu visita, no el día exacto. El descuento es en servicios, no en productos.</p>`;
+    if(a.paso===1)return `<button class="back" data-alta="0">‹ Cambiar de tarjeta</button><div class="lcard ${a.tipo==='week'?'w':a.tipo==='color'?'c':'b'} pop">${DECO}<div class="name" style="position:relative">Has elegido</div><div class="title" style="font-size:32px;position:relative">Tarjeta ${NOMBRE[a.tipo]}</div>
+     <div class="msg">${a.tipo==='caballero'?'Un sello por cada corte. Con 10, el siguiente es gratis.':'Hasta un 20 % en todos tus servicios por venir con frecuencia.'}</div></div>
      <form id="falta"><label for="an">Nombre</label><input id="an" autocomplete="name" required value="${esc(a.n)}">
      <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" value="${esc(a.t)}">
      <label class="chk"><input type="checkbox" id="ap" required> Acepto la política de privacidad y recibir mis ventajas por WhatsApp</label>
@@ -360,36 +389,37 @@ tarjetas(){
     return `<button class="back" data-alta="1">‹ Volver</button><h2>Te hemos enviado un código</h2><p class="empty">Por WhatsApp al ${esc(a.t)}. En esta prueba, el código es 1234.</p>
      <form id="fcod"><label for="ac">Código</label><input id="ac" inputmode="numeric" autocomplete="one-time-code" maxlength="4" required>
      <button class="btn" type="submit" style="margin-top:12px">Confirmar</button></form>`}
-  const movs=tarjeta.movs.slice().reverse().slice(0,8);
-  return `<h2>Mis tarjetas</h2>
-  <div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>Enséñalo al pagar y se aplica tu descuento solo.</p></div></div>
+  const movs=tarjeta.movs.slice().reverse().slice(0,8),cab=tarjeta.tipo==='caballero';
+  return `<h2>Mi tarjeta</h2>
+  <div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
   <div class="grid2" style="margin-bottom:14px"><button class="btn sec" data-inst="1">Guardar en el móvil</button><button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
-  ${cardHtml('week')}${cardHtml('color')}
-  <div class="lcard p"><div class="top"><div><div class="name">Cortes, tratamientos y productos</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} para gastar</small></div></div>
-  <ul class="rules"><li>1 punto por cada euro en productos, y en servicios cuando no tienes descuento Week o Color.</li><li>100 puntos = 5 € de descuento.</li></ul></div>
+  ${cab?sellosHtml():cardHtml(tarjeta.tipo)}
+  <div class="lcard p"><div class="top"><div><div class="name">${cab?'Productos':'Productos y visitas sin descuento'}</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} para gastar</small></div></div>
+  <ul class="rules"><li>${cab?'1 punto por cada euro en productos.':'1 punto por cada euro en productos, y en servicios cuando no tienes descuento.'}</li><li>100 puntos = 5 € de descuento.</li></ul></div>
   ${movs.length?'<h3>Últimos movimientos</h3>'+movs.map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${esc(SALONES.find(x=>x.id===m.s).nombre)}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}
+  <p class="empty">Solo se puede tener una tarjeta. Para cambiarla, pídelo en el salón.</p>
   <h3>Para el personal</h3><button class="btn sec" data-recep="1">Recepción: registrar un cobro</button>
-  <p class="empty" style="margin-top:14px">Prueba: <button class="back" id="demoh">cargar un historial de ejemplo</button></p>`},
+  <p class="empty" style="margin-top:14px">Prueba: <button class="back" id="demoh">cargar un historial de ejemplo</button> · <button class="back" id="borrar">empezar de cero</button></p>`},
 recepcion(){
-  const r=st.r||(st.r={cod:'',pein:false,col:false,serv:'',prod:'',usar:false});
-  if(!tarjeta)return `<button class="back" data-recep="0">‹ Volver</button><h2>Recepción</h2><p class="empty">Este cliente aún no tiene tarjeta. Actívala desde «Tarjetas» o, en la versión real, dándola de alta aquí con su teléfono.</p>`;
-  const ok=r.cod.trim().toUpperCase()===tarjeta.cod,c=calcCobro(r);
-  return `<button class="back" data-recep="0">‹ Volver a mis tarjetas</button><h2>Recepción</h2>
+  const r=st.r||(st.r={cod:'',marca:false,gratis:false,precioCorte:'15',serv:'',prod:'',usar:false});
+  if(!tarjeta)return `<button class="back" data-recep="0">‹ Volver</button><h2>Recepción</h2><p class="empty">Este cliente aún no tiene tarjeta. Actívala desde «Tarjeta» o, en la versión real, dándola de alta aquí con su teléfono.</p>`;
+  const ok=r.cod.trim().toUpperCase()===tarjeta.cod,c=calcCobro(r),cab=tarjeta.tipo==='caballero';
+  const marcaTxt={week:'Lleva peinado · marca la visita de esta semana',color:'Lleva coloración · marca la visita de este mes',caballero:'Corte de caballero · suma 1 sello'}[tarjeta.tipo];
+  return `<button class="back" data-recep="0">‹ Volver a mi tarjeta</button><h2>Recepción</h2>
   <p class="empty">Pantalla del personal. En la versión real va aparte, con clave del salón, y lee el QR con la cámara.</p>
   <div class="staff">
    <label for="rcod">Código de tarjeta o teléfono</label><input id="rcod" value="${esc(r.cod)}" placeholder="Prueba con ${tarjeta.cod}" autocomplete="off">
    ${r.cod&&!ok?'<p class="empty">No encuentro esa tarjeta.</p>':''}
-   ${ok?`<div class="sum"><div><span>Week</span><span>${estado('week').pct} %</span></div><div><span>Color</span><span>${estado('color').pct} %</span></div><div><span>Puntos</span><span>${tarjeta.puntos}</span></div></div>
-   <p class="empty" style="margin:8px 0 0">¿Qué lleva el ticket de hoy?</p>
-   <label class="chk"><input type="checkbox" id="rpein" ${r.pein?'checked':''}> Peinado · marca la visita Week</label>
-   <label class="chk"><input type="checkbox" id="rcol" ${r.col?'checked':''}> Coloración · marca la visita Color</label>
-   <label for="rserv">Total servicios (€)</label><input id="rserv" inputmode="decimal" value="${esc(r.serv)}" placeholder="Ej.: 54">
+   ${ok?`<div class="sum"><div><span>Tarjeta</span><span>${NOMBRE[tarjeta.tipo]}</span></div><div><span>${cab?'Sellos':'Descuento hoy'}</span><span>${cab?Math.min(tarjeta.sellos||0,10)+'/10':pctHoy()+' %'}</span></div><div><span>Puntos</span><span>${tarjeta.puntos}</span></div></div>
+   ${cab&&(tarjeta.sellos||0)>=10?`<label class="chk"><input type="checkbox" id="rgratis" ${r.gratis?'checked':''}> Canjear el corte gratis</label>${r.gratis?`<label for="rpc">Precio del corte (€)</label><input id="rpc" inputmode="decimal" value="${esc(r.precioCorte)}">`:''}`:''}
+   ${r.gratis?'':`<label class="chk"><input type="checkbox" id="rmarca" ${r.marca?'checked':''}> ${marcaTxt}</label>`}
+   <label for="rserv">Total servicios (€)</label><input id="rserv" inputmode="decimal" value="${esc(r.serv)}" placeholder="Ej.: ${cab?'15':'54'}">
    <label for="rprod">Productos (€)</label><input id="rprod" inputmode="decimal" value="${esc(r.prod)}" placeholder="0">
    <label class="chk"><input type="checkbox" id="rusar" ${r.usar?'checked':''} ${tarjeta.puntos>=100?'':'disabled'}> Gastar puntos (tiene ${tarjeta.puntos})</label>
-   ${c.total?`<div class="sum"><div><span>Servicios</span><span>${eur(c.serv)}</span></div>${c.pct?`<div><span>Tarjeta ${c.pct} % en servicios</span><span>− ${eur(c.dto)}</span></div>`:''}
+   ${c.total?`<div class="sum"><div><span>Servicios</span><span>${eur(c.serv)}</span></div>${c.pct?`<div><span>Tarjeta ${NOMBRE[tarjeta.tipo]} ${c.pct} %</span><span>− ${eur(c.dto)}</span></div>`:''}${c.gratis?`<div><span>Corte gratis</span><span>− ${eur(c.dto)}</span></div>`:''}
    ${c.prod?`<div><span>Productos</span><span>${eur(c.prod)}</span></div>`:''}${c.dpts?`<div><span>Puntos (${c.pts})</span><span>− ${eur(c.dpts)}</span></div>`:''}
    <div class="tot"><span>A cobrar</span><span>${eur(c.cobrar)}</span></div>${c.gana?`<div><span>Puntos que gana</span><span>+${c.gana}</span></div>`:''}
-   <div><span>Visitas que marca</span><span>${[r.pein?'Week':'',r.col?'Color':''].filter(Boolean).join(' + ')||'ninguna'}</span></div></div>
+   ${cab&&r.marca&&!r.gratis?`<div><span>Sellos</span><span>${(tarjeta.sellos||0)+1}/10</span></div>`:''}</div>
    <button class="btn" id="rok">Registrar cobro</button>`:''}`:''}
   </div>`},
 promos(){
@@ -411,12 +441,16 @@ salon(){
 
 // La mejor de las dos tarjetas descuenta todos los servicios del ticket; no los productos.
 // Puntos: se ganan con productos y con servicios cuando no hay descuento de tarjeta.
+// Week/Color: su % descuenta todos los servicios (no productos). Man: sellos; con 10, un corte gratis.
+// Puntos: productos siempre; servicios solo en Week/Color cuando ese día no hay descuento.
 function calcCobro(r){
   const n=v=>Math.max(0,parseFloat(String(v).replace(',','.'))||0);
-  const serv=n(r.serv),prod=n(r.prod),pct=pctHoy(),dto=serv*pct/100,antes=serv-dto+prod;
+  const serv=n(r.serv),prod=n(r.prod),cab=tarjeta.tipo==='caballero',pct=cab?0:pctHoy();
+  const gratis=cab&&r.gratis&&(tarjeta.sellos||0)>=10;
+  const dto=gratis?Math.min(n(r.precioCorte),serv):serv*pct/100,antes=serv-dto+prod;
   const dpts=r.usar&&tarjeta.puntos>=100?Math.min(Math.floor(tarjeta.puntos/20),Math.floor(antes)):0;
-  const gana=Math.max(0,Math.floor((pct?0:serv)+prod-dpts));
-  return {serv,prod,pct,dto,dpts,pts:dpts*20,cobrar:antes-dpts,gana,total:serv+prod}}
+  const gana=Math.max(0,Math.floor((!cab&&!pct?serv:0)+prod-dpts));
+  return {serv,prod,pct,gratis,dto,dpts,pts:dpts*20,cobrar:antes-dpts,gana,total:serv+prod}}
 
 function render(){
   $('main').innerHTML=V[st.tab]();
@@ -430,33 +464,37 @@ function render(){
   const qr=$('qr');
   if(qr&&window.qrcode){try{const q=qrcode(0,'M');q.addData(tarjeta.cod);q.make();qr.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
   const bind=(id,k,ev)=>{const el=$(id);if(el)el.addEventListener(ev||'input',()=>{st.r[k]=el.type==='checkbox'?el.checked:el.value;const typing=!ev,pos=el.selectionStart;render();const n=$(id);if(typing&&n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}})};
-  bind('rcod','cod');bind('rserv','serv');bind('rprod','prod');bind('rusar','usar','change');bind('rpein','pein','change');bind('rcol','col','change');
+  bind('rcod','cod');bind('rserv','serv');bind('rprod','prod');bind('rusar','usar','change');bind('rmarca','marca','change');bind('rgratis','gratis','change');bind('rpc','precioCorte');
   const fa=$('falta');
   if(fa)fa.onsubmit=e=>{e.preventDefault();st.alta.n=$('an').value.trim();st.alta.t=$('at').value.trim();st.alta.paso=2;render()};
   const fc=$('fcod');
   if(fc)fc.onsubmit=e=>{e.preventDefault();if($('ac').value.trim()!=='1234'){toast('Código incorrecto. En la prueba es 1234');return}
-    tarjeta={cod:nuevoCod(),nombre:st.alta.n,tel:st.alta.t,alta:HOY(),week:[],color:[],puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
+    tarjeta={cod:nuevoCod(),tipo:st.alta.tipo,nombre:st.alta.n,tel:st.alta.t,alta:HOY(),week:[],color:[],sellos:0,puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
     st.alta=null;toast('¡Tarjetas activadas! ✓');render();$('main').scrollTop=0;abrirInst(true)};
   const dh=$('demoh');
   if(dh)dh.onclick=()=>{demoHistorial();toast('Historial de ejemplo cargado');render()};
   const rok=$('rok');
-  if(rok)rok.onclick=()=>{const r=st.r,c=calcCobro(r),hoy=HOY();
-    if(r.pein)tarjeta.week.push(hoy);if(r.col)tarjeta.color.push(hoy);
+  if(rok)rok.onclick=()=>{const r=st.r,c=calcCobro(r),hoy=HOY(),t=tarjeta.tipo;let sello='';
+    if(c.gratis){tarjeta.sellos=0;sello='corte gratis'}
+    else if(r.marca){if(t==='caballero'){tarjeta.sellos=(tarjeta.sellos||0)+1;sello='+1 sello'}else tarjeta[t].push(hoy)}
     tarjeta.puntos+=c.gana-c.pts;
-    const res=[c.pct?'−'+c.pct+' %':'',c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
-    tarjeta.movs.push({f:hoy,s:st.salon,t:([r.pein?'Peinado':'',r.col?'Coloración':''].filter(Boolean).join(' + ')||'Servicios')+' · '+eur(c.cobrar),r:res});
+    const res=[c.pct?'−'+c.pct+' %':'',sello,c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
+    tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Peinado',color:'Coloración',caballero:'Corte caballero'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
     store.set('tarjeta',tarjeta);toast('Cobro registrado · '+res);st.recep=false;st.r=null;render();$('main').scrollTop=0};
+  const bo=$('borrar');if(bo)bo.onclick=()=>{tarjeta=null;store.set('tarjeta',null);st.alta=null;toast('Tarjeta borrada (prueba)');render()};
+
 }
 
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
+  const b=e.target.closest('[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
   const d=b.dataset;
+  if(d.elige){st.alta.tipo=d.elige;st.alta.paso=1;render();$('main').scrollTop=0;return}
   if(d.inst){abrirInst(false);return}
   if(d.wallet){if(!tarjeta){cerrarSheet();go('tarjetas');toast('Primero activa tu tarjeta');return}abrirWallet();return}
   if(d.so){instSO=d.so;abrirInst(false);return}
   if(d.cerrar){cerrarSheet();return}
   if(d.wok){cerrarSheet();toast('Prueba: en la versión real queda guardada en tu cartera');return}
-  if(d.alta){st.alta.paso=1;render();return}
+  if(d.alta){st.alta.paso=+d.alta;render();return}
   if(d.recep){st.recep=d.recep==='1';st.r=null;render();$('main').scrollTop=0;return}
   if(d.go)return go(d.go);
   if(d.fam){st.fam=d.fam;st.paso='servicio'}
