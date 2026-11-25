@@ -157,6 +157,7 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
 .badge-n{position:absolute;top:2px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--ac);color:var(--acInk);font:800 11px Manrope,sans-serif;display:grid;place-items:center;padding:0 4px}
 .aviso{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.aviso .dot2{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px;background:var(--line)}.aviso.nuevo .dot2{background:var(--ac)}
 .aviso b{display:block;font-size:15px}.aviso p{margin:2px 0 0;color:var(--mut);font-size:14px}.aviso small{color:var(--mut);font-size:12.5px}
+.stars{display:flex;gap:6px;margin:10px 0 4px}.star{border:0;background:none;font-size:38px;line-height:1;color:var(--line);cursor:pointer;padding:0 2px;min-height:44px}.star.on{color:#f5b301}
 .pop{animation:pop .5s ease-out}
 @keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}.pop{animation:none}}
@@ -191,6 +192,10 @@ const SALONES=[
  {id:'hc',nombre:'Heron City · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Hamza',maps:'Marco Aldany Heron City Las Rozas',web:'https://stechmilano.com/marco-aldany-cc-heron-city/',reserva:'https://red.wilapp.com/profesional/marco-aldany-cc-heron-city-a4bf2b?locked=true'},
  {id:'eu',nombre:'Európolis · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Martín',maps:'Marco Aldany Európolis Las Rozas',web:'https://stechmilano.com/marco-aldany-europolis/',reserva:'https://red.wilapp.com/profesional/marco-aldany-europolis-426edd?locked=true'}];
 const WA='34665122755';
+// Enlace para escribir reseña en la ficha de Google de cada salón. PENDIENTE: poner el enlace «Pedir reseñas» de cada ficha (g.page/r/…/review).
+const RESENA={vv:'',hc:'',eu:''};
+const resenaLink=s=>RESENA[s.id]||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.maps));
+const waDuda=(s,txt)=>'https://wa.me/'+WA+'?text='+encodeURIComponent(txt||('Hola, tengo una duda sobre mi visita en Marco Aldany '+s.nombre));
 const waLink=s=>'https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, quiero pedir cita en Marco Aldany '+s.nombre);
 // tipo: 'week' = entra en la tarjeta Week, 'color' = tarjeta Color
 const SERVICIOS=[
@@ -288,6 +293,7 @@ function avisosLista(){
   const pr=proxReinicio(tarjeta.alta||hoy,hoy),dias=Math.round((pr-new Date(hoy+'T12:00'))/864e5);
   if(dias<=30&&((tarjeta.puntos||0)>0||(tarjeta.sellos||0)>0))L.push({id:'reini'+iso(pr),f:hoy,t:'Tus puntos'+(T==='caballero'?' y sellos':'')+' se reinician en '+dias+' días',p:'El '+fechaLarga(pr)+'. Úsalos antes.',go:'tarjetas'});
   if((tarjeta.puntos||0)>=100)L.push({id:'canje'+Math.floor(tarjeta.puntos/100),f:hoy,t:'Tienes '+eur(Math.floor(tarjeta.puntos/100)*5)+' para productos',p:'Con tus '+tarjeta.puntos+' puntos. Pídelo al pagar.',go:'tarjetas'});
+  if(tarjeta.pendValorar)L.push({id:'valorar'+tarjeta.pendValorar.f+tarjeta.pendValorar.s,f:tarjeta.pendValorar.f,t:'¿Qué tal tu visita?',p:'Valóranos en un toque. Nos ayuda a mejorar.',go:'inicio'});
   tarjeta.movs.forEach((m,i)=>L.push({id:'mov'+i,f:m.f,t:m.t,p:m.r+' · '+(SALONES.find(x=>x.id===m.s)||{nombre:''}).nombre,go:'tarjetas'}));
   L.push({id:'bienv'+tarjeta.cod,f:tarjeta.alta||hoy,t:'Tu Tarjeta '+NOMBRE[T]+' está activa',p:'Enséñala al pagar en cualquiera de nuestros salones.',go:'tarjetas'});
   return L.sort((a,b)=>b.f.localeCompare(a.f))}
@@ -367,6 +373,17 @@ function pctEn(serv,dia){
 const NOMBRE={week:'Week',color:'Color & Cut',caballero:'Man'};
 const STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"/></svg>';
 const GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>';
+function valorarHtml(){
+  const v=tarjeta&&tarjeta.pendValorar;if(!v)return '';const s=SALONES.find(x=>x.id===v.s)||salon(),n=v.n||0;
+  const stars=[1,2,3,4,5].map(i=>`<button class="star ${i<=n?'on':''}" data-estrella="${i}" aria-label="${i} estrellas">★</button>`).join('');
+  let after='';
+  if(n>=4)after=`<p style="margin:10px 0 6px;font-weight:700">¡Gracias! Nos ayudarías mucho contándolo en Google.</p><a class="btn" href="${resenaLink(s)}" target="_blank" rel="noopener" data-resena="1">Dejar reseña en Google</a><p class="empty" style="font-size:13px;margin:6px 0 0">Se abre la ficha de ${esc(s.nombre)}; solo tienes que marcar las estrellas y, si quieres, escribir unas palabras.</p>`;
+  else if(n>=1)after=`<p style="margin:10px 0 6px;font-weight:700">Sentimos que no haya sido perfecto. ¿Qué podemos mejorar?</p><textarea id="vcom" rows="3" style="width:100%;font:16px Manrope,sans-serif;border-radius:12px;border:1px solid var(--line);padding:10px;background:var(--app);color:var(--ink)" placeholder="Cuéntanos (opcional)"></textarea>
+    <button class="btn" data-vguardar="1" style="margin-top:8px">Enviar mi opinión</button>
+    <a class="btn sec" href="${waDuda(s,'Hola, quería comentaros mi visita en Marco Aldany '+s.nombre)}" target="_blank" rel="noopener" style="margin-top:8px">Hablar con el salón por WhatsApp</a>
+    <p class="empty" style="font-size:13px;margin:6px 0 0">También puedes <a href="${resenaLink(s)}" target="_blank" rel="noopener">dejar tu reseña en Google</a>.</p>`;
+  return `<div class="lcard p pop" style="background:var(--app);color:var(--ink);border:2px solid var(--ac)"><div class="name" style="color:var(--ac)">${fecha(v.f)} · ${esc(s.nombre)}</div><div class="title">¿Qué tal tu visita?</div>
+   <div class="stars">${stars}</div>${after}${n?'':'<button class="back" data-vcerrar="1">Ahora no</button>'}</div>`}
 function sellosHtml(){const n=tarjeta.sellos||0,lleno=n>=10;
   return `<div class="lcard b pop">${DECO}<div class="top"><div><div class="name">Solo caballeros</div><div class="title">Tarjeta Man</div></div><div class="pct" style="font-size:52px">${Math.min(n,10)}/10<small>sellos</small></div></div>
   <div class="msg">${lleno?'<b>¡Tienes un corte gratis!</b> Dilo al pagar en tu próxima visita.':n===9?'<b>¡Solo te falta 1!</b> Tu próximo corte suma el último sello.':`Te faltan <b>${10-n} sellos</b> para tu corte gratis.`}</div>
@@ -400,7 +417,7 @@ inicio(){
   else{const e=estado(tarjeta.tipo),w=tarjeta.tipo==='week';
    tiles=`<button class="tile ${w?'w':'c'}" data-go="tarjetas"><span class="pct">${e.pct} %</span><span>${NOMBRE[tarjeta.tipo]}<small>${e.pct===20?'Hasta el '+e.hasta20.replace('sábado ','sáb '):e.pct?'Sube al 20 % viniendo':(w?'Actívala esta semana':'Actívala este mes')}</small></span></button>
    <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)} en productos</small></button>`}
-  return `<div class="hero">${DECO}<b>Tu momento de salón</b>
+  return `${valorarHtml()}<div class="hero">${DECO}<b>Tu momento de salón</b>
   <p>Reserva en nuestra web o por WhatsApp en ${esc(salon().nombre)}.</p>
   <div class="grid2" style="position:relative"><a class="btn light" href="${salon().reserva}" target="_blank" rel="noopener">Reservar online</a><a class="btn light" href="${waLink(salon())}" target="_blank" rel="noopener">WhatsApp</a></div></div>
   <div class="grid2">
@@ -456,7 +473,7 @@ tarjetas(){
      caballero:'<button class="choice b" data-nueva="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte o degradado.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>'}[t])).join('')}</div>
     <p class="empty">Al cambiar, pierdes lo que llevas en la tarjeta actual y la nueva empieza desde cero. Tus puntos se mantienen.</p>`}
   const movs=tarjeta.movs.slice().reverse().slice(0,8),cab=tarjeta.tipo==='caballero';
-  return `<h2>Mi tarjeta</h2>
+  return `${valorarHtml()}<h2>Mi tarjeta</h2>
   ${tarjeta.validada===false?'<div class="sum" style="margin-top:0">Tarjeta activa. Se valida en tu primera visita al salón, al escanearla.</div>':''}<div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
   <div class="bar"><svg id="bc"></svg></div>
   <div class="grid2" style="margin-bottom:14px">${instalada()?'<button class="btn sec" disabled>Ya la tienes instalada ✓</button>':`<button class="btn sec" data-instalar="1">${promptInst?'Instalar con un toque':DISP.so==='ios'?'Añadir a pantalla de inicio':DISP.so==='android'?'Instalar app':'Guardar en el móvil'}</button>`}<button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
@@ -466,7 +483,7 @@ tarjetas(){
   ${movs.length?'<h3>Últimos movimientos</h3>'+movs.map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${esc(SALONES.find(x=>x.id===m.s).nombre)}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}
   <button class="btn sec" data-cambiar="1" style="margin-top:8px">Cambiar de tarjeta</button><p class="empty" style="margin-top:8px"><button class="back" data-condiciones="1">Condiciones</button> · <button class="back" data-politica="1">Política de privacidad</button> · Para darte de baja o cambiar tus datos, escribe a info@stechmilano.com o pídelo en el salón.</p><p class="empty">Solo se puede tener una tarjeta. Si la cambias, la nueva empieza desde cero.</p>
   <h3>Para el personal</h3><button class="btn sec" data-recep="1">Recepción: registrar un cobro</button>
-  <p class="empty" style="margin-top:14px">Prueba: <button class="back" id="demoh">cargar un historial de ejemplo</button> · <button class="back" id="borrar">empezar de cero</button></p>`},
+  <p class="empty" style="margin-top:14px">Prueba: <button class="back" id="demoh">cargar un historial de ejemplo</button> · <button class="back" id="demov">simular una visita para valorar</button> · <button class="back" id="borrar">empezar de cero</button></p>`},
 recepcion(){
   const r=st.r||(st.r={cod:'',marca:!!tarjeta&&tarjeta.tipo==='week',gratis:false,precioCorte:'15',serv:'',prod:'',usar:false});
   if(!tarjeta)return `<button class="back" data-recep="0">‹ Volver</button><h2>Recepción</h2><p class="empty">Este cliente aún no tiene tarjeta. Actívala desde «Tarjeta» o, en la versión real, dándola de alta aquí con su teléfono.</p>`;
@@ -503,7 +520,8 @@ salon(){
    <a class="btn" href="${s.reserva}" target="_blank" rel="noopener">Reservar online</a>
    <a class="btn sec" href="${waLink(s)}" target="_blank" rel="noopener">Reservar por WhatsApp · 665 122 755</a>
    <a class="btn sec" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Cómo llegar</a>
-   <a class="btn sec" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Déjanos una reseña en Google</a>
+   <a class="btn sec" href="${waDuda(s)}" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a>
+   <a class="btn sec" href="${resenaLink(s)}" target="_blank" rel="noopener">Déjanos una reseña en Google</a>
    <a class="btn sec" href="https://www.instagram.com/${s.ig}/" target="_blank" rel="noopener">Síguenos en Instagram · @${s.ig}</a>
   </div>`}
 };
@@ -547,6 +565,7 @@ function render(){
   if(fc)fc.onsubmit=e=>{e.preventDefault();if($('ac').value.trim()!=='1234'){toast('Código incorrecto. En la prueba es 1234');return}
     tarjeta={cod:nuevoCod(),tipo:st.alta.tipo,nombre:st.alta.n,email:st.alta.e,tel:st.alta.t,alta:HOY(),week:[],color:[],sellos:0,puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
     st.alta=null;toast('¡Tarjetas activadas! ✓');render();$('main').scrollTop=0;abrirInst(true)};
+  const dv=$('demov');if(dv)dv.onclick=()=>{tarjeta.pendValorar={f:HOY(),s:st.salon,n:0};store.set('tarjeta',tarjeta);toast('Visita simulada: valórala arriba');render();$('main').scrollTop=0};
   const dh=$('demoh');
   if(dh)dh.onclick=()=>{demoHistorial();toast('Historial de ejemplo cargado');render()};
   const rok=$('rok');
@@ -556,14 +575,19 @@ function render(){
     tarjeta.validada=true;tarjeta.puntos+=c.gana-c.pts;
     const res=[c.pct?'−'+c.pct+' %':'',sello,c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
     tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Visita semanal',color:'Color / corte',caballero:'Corte / degradado'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
+    if(r.marca||c.gratis)tarjeta.pendValorar={f:hoy,s:st.salon,n:0};
     store.set('tarjeta',tarjeta);toast('Cobro registrado · '+res);st.recep=false;st.r=null;render();$('main').scrollTop=0};
   const bo=$('borrar');if(bo)bo.onclick=()=>{tarjeta=null;store.set('tarjeta',null);st.alta=null;toast('Tarjeta borrada (prueba)');render()};
 
 }
 
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-notif],[data-instalar],[data-condiciones],[data-politica],[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
+  const b=e.target.closest('[data-estrella],[data-vguardar],[data-vcerrar],[data-resena],[data-notif],[data-instalar],[data-condiciones],[data-politica],[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
   const d=b.dataset;
+  if(d.estrella){tarjeta.pendValorar.n=+d.estrella;(tarjeta.valoraciones=tarjeta.valoraciones||[]).push({f:tarjeta.pendValorar.f,s:tarjeta.pendValorar.s,n:+d.estrella});store.set('tarjeta',tarjeta);render();return}
+  if(d.vguardar){const v=tarjeta.pendValorar,com=($('vcom')||{}).value||'';const last=(tarjeta.valoraciones||[]).slice(-1)[0];if(last)last.com=com;tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);toast('Gracias. El salón leerá tu opinión.');render();return}
+  if(d.resena){setTimeout(()=>{tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);render()},400);return}
+  if(d.vcerrar){tarjeta.pendValorar=null;store.set('tarjeta',tarjeta);render();return}
   if(d.notif){pedirPermiso();return}
   if(d.instalar){cerrarSheet();instalar();return}
   if(d.condiciones){abrirSheet('<div class="pol">'+CONDICIONES+'</div><button class="btn" data-cerrar="1" style="margin-top:14px">Cerrar</button>');return}
