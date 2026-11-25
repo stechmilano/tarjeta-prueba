@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarjetas Week, Color & Cut y Man</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: claro y práctico para el equipo, con el glamour de salón en la tarjeta del cliente.
+   IDEA: mostrador de recepción: a un lado el móvil del cliente, al otro la pantalla del salón.
+   PICTURE: la tarjeta del cliente en un móvil, viva, que cambia al cobrar en el panel.
+   COLOUR and TYPE: blanco, tinta casi negra, frambuesa #9b1b4a; Week ciruela, Color coral; DM Serif Display + Manrope.
+   LAYOUT: móvil a la izquierda, panel con pestañas a la derecha; en pantallas estrechas, apilado. */
+:root{color-scheme:light dark;--bg:light-dark(#f3eef0,#100d11);--app:light-dark(#fff,#1a161b);--ink:light-dark(#1b1619,#f3eef1);--mut:light-dark(#6d6268,#b3a8ae);--ac:light-dark(#9b1b4a,#ff7aa6);--acInk:light-dark(#fff,#1b1619);--soft:light-dark(#f8e9ee,#2e2027);--line:light-dark(#ece3e7,#352d33);--ok:light-dark(#1d7a4a,#5fd39a);--warn:light-dark(#b3541e,#ffb070);
+--week:linear-gradient(135deg,#2a1033 0%,#5b1f56 55%,#9b1b4a 120%);--color:linear-gradient(135deg,#c2185b 0%,#ec5a6e 55%,#f59a6b 110%);--pts:linear-gradient(135deg,#3a2f36,#6b5a63)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;overflow-x:clip}
+.top{padding:24px max(4vw,16px) 8px;max-width:1300px;margin:auto}
+.top h1{font:400 clamp(30px,4vw,44px)/1.05 'DM Serif Display',serif;margin:0 0 6px;text-wrap:balance}
+.top p{margin:0;color:var(--mut);max-width:70ch}
+.wrap{display:grid;grid-template-columns:380px minmax(0,1fr);gap:28px;padding:16px max(4vw,16px) 40px;max-width:1300px;margin:auto;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.phone{margin:auto}}
+.lbl{font-size:13px;font-weight:800;color:var(--mut);margin:0 0 8px}
+.phone{width:100%;max-width:380px;background:var(--app);border-radius:36px;box-shadow:0 0 0 9px #1b1619,0 30px 60px -24px rgba(0,0,0,.45);padding:18px 16px 22px;position:sticky;top:16px}
+.ph-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.brand{font:400 22px/1 'DM Serif Display',serif}
+.ph-h small{color:var(--mut);font-size:13px}
+.qrbox{display:flex;gap:12px;align-items:center;background:var(--soft);border-radius:18px;padding:12px;margin-bottom:12px}
+.qr{background:#fff;border-radius:10px;padding:5px;width:84px;height:84px;flex:none;display:grid;place-items:center;color:#1b1619;font-size:12px}
+.qr svg{width:100%;height:100%}
+.qrbox b{font-size:17px}.qrbox p{margin:0;color:var(--mut);font-size:13px}
+.lcard{border-radius:22px;padding:16px;color:#fff;margin-bottom:10px;position:relative;overflow:hidden}
+.lcard.w{background:var(--week)}.lcard.c{background:var(--color)}.lcard.p{background:var(--pts)}
+.lcard .row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.lcard .name{font:800 12px Manrope,sans-serif;opacity:.85}
+.lcard .title{font:400 22px/1 'DM Serif Display',serif;margin-top:2px}
+.lcard .pct{font:400 52px/.9 'DM Serif Display',serif;text-align:right;white-space:nowrap}
+.lcard .msg{margin:10px 0 10px;font-size:14px}
+.dots{display:grid;gap:4px}
+.dot{height:24px;border-radius:7px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:10.5px;font-weight:700}
+.dot.on{background:#fff;color:#5b1f56}.dot.now{outline:2px dashed rgba(255,255,255,.8);outline-offset:-2px}
+.mini{font-size:13px;color:var(--mut)}
+.mov{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.mov small{display:block;color:var(--mut);font-size:12.5px}.mov b{white-space:nowrap;color:var(--ac)}
+.panel{background:var(--app);border-radius:22px;border:1px solid var(--line);overflow:hidden}
+.tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);overflow-x:auto;background:var(--soft)}
+.tabs button{flex:none;border:0;background:none;font:800 15px Manrope,sans-serif;color:var(--mut);padding:10px 14px;border-radius:12px;min-height:44px;cursor:pointer}
+.tabs button.on{background:var(--app);color:var(--ac)}
+.pbody{padding:20px}
+h2{font:400 28px/1.1 'DM Serif Display',serif;margin:0 0 6px}
+h3{font-size:16px;margin:20px 0 8px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--soft);border-radius:16px;padding:12px}
+.kpi b{font:400 clamp(26px,4vw,34px)/1 'DM Serif Display',serif;display:block}
+.kpi span{font-size:13px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;font-size:13px;color:var(--mut);font-weight:700;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n{text-align:right;white-space:nowrap}
+tr.sel td{background:var(--soft)}
+.lcard.m{background:linear-gradient(135deg,#14161c 0%,#2c3340 60%,#4a5568 120%)}
+.stamps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:6px}
+.stamp{aspect-ratio:1;border-radius:50%;border:2px dashed rgba(255,255,255,.45);display:grid;place-items:center;font-weight:800;font-size:12px;color:rgba(255,255,255,.7)}
+.stamp.on{border:0;background:#fff;color:#1b1619}.stamp svg{width:58%;height:58%}
+.pm{background:#2c3340;color:#fff}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:800;white-space:nowrap}
+.p20{background:#5b1f56;color:#fff}.p10{background:#ec5a6e;color:#fff}.p0{background:var(--line);color:var(--mut)}
+.warn{color:var(--warn);font-weight:700;font-size:13px}
+.lnk{background:none;border:0;color:var(--ac);font:800 14px Manrope,sans-serif;cursor:pointer;padding:6px 4px;min-height:40px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;border-radius:14px;border:0;background:var(--ac);color:var(--acInk);font:800 15px Manrope,sans-serif;cursor:pointer;width:100%}
+.btn.sec{background:var(--soft);color:var(--ink)}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 4px}
+input,select{width:100%;font:16px Manrope,sans-serif;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--app);color:var(--ink);min-height:46px}
+.chk{display:flex;gap:10px;align-items:center;margin:10px 0 0;font-weight:700}.chk input{width:22px;height:22px;min-height:0;flex:none}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:600px){.g2{grid-template-columns:minmax(0,1fr)}}
+.sum{background:var(--soft);border-radius:16px;padding:14px;margin:14px 0}
+.sum div{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:15px}
+.sum span:last-child{font-weight:800;text-align:right}
+.sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:18px}
+.msgbox{background:var(--soft);border-radius:14px;padding:12px;font-size:14.5px;white-space:pre-wrap;margin:8px 0}
+.scroll{overflow-x:auto}
+.scanbox{border:3px dashed var(--ac);border-radius:20px;padding:20px;text-align:center;margin:10px 0}
+.scanbox input{font-size:22px;text-align:center;letter-spacing:.08em;margin-top:10px}
+.scanbox .ico{font:400 30px/1.1 'DM Serif Display',serif;display:block}
+.res{border-radius:20px;padding:18px;margin:12px 0;color:#fff}
+.res.ok{background:linear-gradient(135deg,#1d7a4a,#2e9e66)}.res.warn{background:linear-gradient(135deg,#b3541e,#d9822b)}.res.err{background:linear-gradient(135deg,#8a1c1c,#c0392b)}
+.res b.big{font:400 30px/1.1 'DM Serif Display',serif;display:block;margin:4px 0}
+.res .acc{background:rgba(255,255,255,.18);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:17px;font-weight:700}
+.bar{background:#fff;border-radius:10px;padding:6px;margin-top:8px;display:flex;justify-content:center}.bar svg{max-width:100%;height:56px}
+.hist{font-size:14px}
+.poster{border-radius:20px;background:var(--week);color:#fff;padding:20px;display:flex;gap:16px;align-items:center;margin:10px 0}
+.poster b{font:400 26px/1.1 'DM Serif Display',serif;display:block;margin-bottom:6px}
+.poster p{margin:0;opacity:.9;font-size:14.5px}
+.poster .qr{width:120px;height:120px}
+@media(max-width:600px){.poster{flex-direction:column;text-align:center}}
+.opts{display:grid;gap:10px;margin:12px 0}
+.optc{border:1px solid var(--line);border-radius:16px;padding:14px}
+.optc b{display:block;font-size:16px}.optc p{margin:4px 0 10px;color:var(--mut);font-size:14.5px}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+a.btn{text-decoration:none}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--app);padding:12px 18px;border-radius:12px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1}
+.flash{animation:fl .7s ease-out}@keyframes fl{from{transform:scale(.97);filter:brightness(1.3)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){.flash{animation:none}.toast{transition:none}}
+@media(max-width:600px){.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;color:var(--mut);font-size:13px}.stack td:empty{display:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Tarjetas Week, Color &amp; Cut y Man: lo que ve el cliente y lo que usa el salón</h1>
+  <p>Ejemplo con clientes inventados. Escanea una tarjeta (o escribe su código y pulsa Intro): la visita se registra sola y su tarjeta cambia en el móvil.</p>
+</div>
+<div class="wrap">
+  <div><p class="lbl">Móvil del cliente</p><div class="phone" id="phone"></div></div>
+  <div><p class="lbl">Panel del salón (recepción y oficina)</p>
+    <div class="panel"><div class="tabs" id="tabs"></div><div class="pbody" id="pbody"></div></div>
+    <p class="mini" style="margin-top:10px">Datos de ejemplo. En la versión real, los clientes y visitas salen de Wilapp y el panel entra con la clave de cada salón.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+{
+const SAL={vv:'Villaviciosa',hc:'Heron City',eu:'Európolis'};
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS=['dom','lun','mar','mié','jue','vie','sáb'];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dt=s=>new Date(s+'T12:00');
+const fecha=s=>{const d=dt(s);return DIAS[d.getDay()]+' '+d.getDate()+' '+MESES[d.getMonth()]};
+const eur=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',')+' €';
+const HOY=iso(new Date());
+const LUNES0=Date.UTC(1970,0,5);
+const semIdx=s=>{const d=dt(s);return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-LUNES0)/(7*864e5))};
+const mesIdx=s=>{const d=dt(s);return d.getFullYear()*12+d.getMonth()};
+const lunesDe=i=>new Date(LUNES0+i*7*864e5+12*36e5);
+const TARJ={
+ week:{nombre:'Tarjeta Week',sub:'Cada semana',idx:semIdx,ud:'esta semana',fin:i=>{const d=lunesDe(i);d.setUTCDate(d.getUTCDate()+5);return 'sábado '+d.getUTCDate()+' de '+MESL[d.getUTCMonth()]}},
+ color:{nombre:'Tarjeta Color & Cut',sub:'Color y corte',idx:mesIdx,ud:'este mes',fin:i=>{const y=Math.floor(i/12),m=i%12;return new Date(y,m+1,0).getDate()+' de '+MESL[m]}}};
+function estado(c,tipo){const T=TARJ[tipo],v=c[tipo];if(!v.length)return {pct:0};
+  const u=T.idx(v.slice().sort().pop()),dif=T.idx(HOY)-u;
+  return {pct:dif<=1?20:dif===2?10:0,dif,hasta20:T.fin(u+1),hasta10:T.fin(u+2),
+    pierdeYa:dif===1||dif===2}}// esta semana / este mes es el último para mantener el nivel
+const NOM={week:'Week',color:'Color & Cut',man:'Man'};
+const pctDe=c=>c.tipo==='man'?0:estado(c,c.tipo).pct;
+
+// ---- clientes de ejemplo (cada uno con UNA tarjeta) ----
+const hace=n=>{const d=new Date();d.setDate(d.getDate()-n);return iso(d)};
+const mesAtras=n=>iso(new Date(new Date().getFullYear(),new Date().getMonth()-n,12));
+const C=[
+ ['Lucía Martín','eu','week',[0,7,14,21,28]],['Carmen Ruiz','eu','color',[1,2,3]],['Elena Gómez','hc','week',[14,28]],
+ ['Marta Sanz','vv','color',[2,3]],['Rosa Delgado','hc','week',[7,14]],['Javier López','eu','man',7],
+ ['Daniel Ortega','hc','man',10],['Pilar Navarro','vv','color',[0,1]],['Sergio Ramos','vv','man',3]
+].map(([n,s,tipo,h],i)=>({id:i+1,n,s,tipo,t:'6'+String(10000000+i*1234567).slice(0,8),cod:'MA'+(482110+i*37),
+  week:tipo==='week'?h.map(hace):[],color:tipo==='color'?h.map(mesAtras):[],sellos:tipo==='man'?h:0,puntos:[180,40,95,260,0,30,55,70,0][i],movs:[]}));
+let ultimo=null,sel=C[0],tab='escanear',f={marca:true,gratis:false,pc:'15',serv:'',prod:'',usar:false,cli:String(C[0].id)};
+const $=id=>document.getElementById(id);
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2400)}
+
+// ---- móvil del cliente ----
+function track(c,tipo){const T=TARJ[tipo],h=T.idx(HOY),n=tipo==='week'?8:6,on=new Set(c[tipo].map(T.idx));
+  return `<div class="dots" style="grid-template-columns:repeat(${n},minmax(0,1fr))">${Array.from({length:n},(_,k)=>{const i=h-n+1+k;
+   const lab=tipo==='week'?(d=>d.getUTCDate()+'/'+(d.getUTCMonth()+1))(lunesDe(i)):MESES[i%12];
+   return `<div class="dot ${on.has(i)?'on':''} ${i===h?'now':''}">${lab}</div>`}).join('')}</div>`}
+const STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"/></svg>';
+function card(c){
+  if(c.tipo==='man'){const n=c.sellos;
+    return `<div class="lcard m"><div class="row"><div><div class="name">Solo caballeros</div><div class="title">Tarjeta Man</div></div><div class="pct">${Math.min(n,10)}/10</div></div>
+    <div class="msg">${n>=10?'<b>¡Tienes un corte gratis!</b> Dilo al pagar.':n===9?'<b>¡Solo te falta 1!</b>':`Te faltan <b>${10-n} sellos</b> para tu corte gratis.`}</div>
+    <div class="stamps">${Array.from({length:10},(_,i)=>`<div class="stamp ${i<n?'on':''}">${i<n?STAR:i+1}</div>`).join('')}</div></div>`}
+  const tipo=c.tipo,T=TARJ[tipo],e=estado(c,tipo);
+  const msg=e.pct===20?(e.dif===0?`Ya viniste ${T.ud}. Vuelve antes del <b>${e.hasta20}</b> y sigues con el 20 %.`:`Tienes el 20 % ${T.ud}. Ven antes del <b>${e.hasta20}</b> para no perderlo.`)
+   :e.pct===10?`Tienes el 10 % hasta el <b>${e.hasta10}</b>. Ven y vuelves al 20 %.`:`Ven ${T.ud} y activa tu descuento para la próxima visita.`;
+  return `<div class="lcard ${tipo==='week'?'w':'c'}"><div class="row"><div><div class="name">${T.sub}</div><div class="title">${T.nombre}</div></div><div class="pct">${e.pct} %</div></div>
+  <div class="msg">${msg}</div>${track(c,tipo)}</div>`}
+function phone(flash){
+  const c=sel,man=c.tipo==='man';
+  $('phone').innerHTML=`<div class="ph-h"><span class="brand">Marco Aldany</span><small>${SAL[c.s]}</small></div>
+  <div class="qrbox"><div class="qr" id="qr">${c.cod}</div><div><b>Hola, ${esc(c.n.split(' ')[0])}</b><p>Tarjeta ${NOM[c.tipo]} · ${c.cod}</p><div class="bar"><svg id="bc"></svg></div><p>${man?'Enséñala al pagar y suma tu sello.':'Enséñala al pagar: tu descuento se aplica solo en todos tus servicios.'}</p></div></div>
+  <div class="${flash?'flash':''}">${card(c)}
+  <div class="lcard p"><div class="row"><div><div class="name">${man?'Productos':'Productos y visitas sin descuento'}</div><div class="title">Puntos</div></div><div class="pct" style="font-size:40px">${c.puntos}</div></div><div class="msg" style="margin-bottom:0">= ${eur(c.puntos*.05)} para gastar en productos · 100 puntos = 5 €</div></div></div>
+  ${c.movs.length?'<p class="lbl" style="margin-top:12px">Últimos movimientos</p>'+c.movs.slice().reverse().slice(0,4).map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${SAL[m.s]}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}`;
+  const q=$('qr');if(q&&window.qrcode){try{const g=qrcode(0,'M');g.addData(c.cod);g.make();q.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
+  try{if(window.JsBarcode)JsBarcode('#bc',c.cod,{format:'CODE128',displayValue:false,height:50,margin:0,width:1.6})}catch(e){}
+}
+
+// ---- panel del salón ----
+const TABS=[['escanear','Escanear'],['cobro','Cobrar'],['clientes','Clientes'],['alta','Alta'],['enviar','Enviar tarjeta'],['avisos','Avisar'],['resumen','Resumen']];
+const URL_APP='https://stechmilano.com/tarjeta';
+const pill=p=>`<span class="pill p${p}">${p} %</span>`;
+const estadoTxt=c=>c.tipo==='man'?`<span class="pill pm">${Math.min(c.sellos,10)}/10 sellos</span>${c.sellos>=10?' <span class="warn">corte gratis</span>':''}`
+  :(e=>pill(e.pct)+(e.pierdeYa&&e.pct?` <span class="warn">${c.tipo==='week'?'última semana':'último mes'}</span>`:''))(estado(c,c.tipo));
+function calc(c){const n=v=>Math.max(0,parseFloat(String(v).replace(',','.'))||0);
+  const man=c.tipo==='man',serv=n(f.serv),prod=n(f.prod),pct=c.tipo==='color'&&!f.marca?0:pctDe(c),gratis=man&&f.gratis&&c.sellos>=10;
+  const dto=gratis?Math.min(n(f.pc),serv):serv*pct/100,antes=serv-dto+prod;
+  const dpts=f.usar&&c.puntos>=100?Math.min(Math.floor(c.puntos/20),Math.floor(prod)):0;// solo en productos
+  return {serv,prod,pct,gratis,dto,dpts,pts:dpts*20,cobrar:antes-dpts,gana:Math.max(0,Math.floor((!man&&!pct?serv:0)+prod-dpts))}}
+const bienvenida=c=>`¡Hola ${c.n.split(' ')[0]}! Ya tienes tu tarjeta ${NOM[c.tipo]} de Marco Aldany ${SAL[c.s]}: ${c.tipo==='man'?'un sello por cada corte o degradado y, con 10, tu siguiente corte gratis':'hasta un 20 % en todos tus servicios por venir con frecuencia'}. Ábrela aquí: ${URL_APP}/${c.cod}\nPara tenerla siempre a mano, guárdala en la pantalla de inicio o en la cartera del móvil.`;
+function avisoTexto(c){const n=c.n.split(' ')[0];
+  if(c.tipo==='man')return c.sellos>=10?`Hola ${n}, ¡tienes un corte gratis esperándote con tu tarjeta Man! ¿Te reservamos hora? Pide cita aquí: (enlace)`:c.sellos===9?`Hola ${n}, te falta solo 1 sello para tu corte gratis con la tarjeta Man. ¿Te reservamos hora? (enlace)`:'';
+  const e=estado(c,c.tipo);if(!(e.pierdeYa&&e.pct))return '';
+  return c.tipo==='week'?`Hola ${n}, esta semana es la última para mantener tu ${e.pct} % con la tarjeta Week. ¿Te reservamos hora? Pide cita aquí: (enlace)`
+   :`Hola ${n}, este mes es el último para mantener tu ${e.pct} % con la tarjeta Color & Cut. ¿Te reservamos tu color o tu corte? Pide cita aquí: (enlace)`}
+// Escáner de códigos: funciona como un teclado; escribe el código y pulsa Intro.
+function registrarScan(raw){
+  const code=String(raw).trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code)return;
+  const c=C.find(x=>x.cod===code);
+  if(!c){ultimo={tipo:'err',txt:'No encuentro ninguna tarjeta con el código '+code};render();return}
+  sel=c;f.cli=String(c.id);
+  if(c.ultScan===HOY||(c.tipo!=='man'&&c[c.tipo].includes(HOY))){ultimo={tipo:'warn',c,txt:'Esta tarjeta ya se registró hoy. No se suma otra visita.',acc:accion(c,pctDe(c))};phone(true);render();return}
+  const pctAntes=pctDe(c);let txt,acc;
+  if(c.tipo==='man'){
+    if(c.sellos>=10){ultimo={tipo:'warn',c,txt:'Tiene un CORTE GRATIS pendiente. Aplícalo en caja.',acc:'Corte gratis hoy',canjear:true};phone(true);render();return}
+    c.sellos++;txt='Sello añadido: '+c.sellos+'/10';acc=c.sellos>=10?'Ya tiene 10 sellos: su próximo corte es gratis':'Sin descuento hoy · cobro normal';
+  }else{c[c.tipo].push(HOY);txt=c.tipo==='week'?'Visita de la semana registrada':'Visita de color o corte registrada';acc=accion(c,pctAntes)}
+  c.ultScan=HOY;
+  c.movs.push({f:HOY,s:c.s,t:'Escaneo · '+{week:'Visita semanal',color:'Color / corte',man:'Corte / degradado'}[c.tipo],r:c.tipo==='man'?'+1 sello':(pctAntes?'−'+pctAntes+' %':'activa descuento'),dto:0,cobrado:0});
+  ultimo={tipo:'ok',c,txt,acc};phone(true);render();
+}
+function accion(c,pct){if(c.tipo==='man')return c.sellos>=10?'Corte gratis disponible':'Sin descuento hoy · cobro normal';
+  return pct?`Aplica en caja un ${pct} % en TODOS los servicios de hoy`:'Primera visita del periodo: cobro normal. Desde la próxima, descuento.'}
+const V={
+escanear(){
+  return `<h2>Escanear tarjeta</h2><p class="mini">Con el escáner, apunta al QR o al código de barras del móvil del cliente. La visita se registra sola.</p>
+  <form id="fscan" class="scanbox" autocomplete="off"><span class="ico">Listo para escanear</span><span class="mini">Si el cursor no está en la caja, haz clic en ella.</span>
+  <input id="scan" aria-label="Código de la tarjeta" placeholder="Código de tarjeta" autocomplete="off" autocapitalize="characters" spellcheck="false"></form>
+  ${ultimo?`<div class="res ${ultimo.tipo}">${ultimo.c?`<span>${NOM[ultimo.c.tipo]} · ${SAL[ultimo.c.s]} · ${ultimo.c.cod}</span><b class="big">${esc(ultimo.c.n)}</b>`:''}<div>${esc(ultimo.txt)}</div>${ultimo.acc?`<div class="acc">${esc(ultimo.acc)}</div>`:''}
+   ${ultimo.canjear?'<button class="btn" style="margin-top:10px;background:#fff;color:#1b1619" id="canj">Corte gratis aplicado: poner sellos a 0</button>':''}</div>`:''}
+  <h3>Registradas hoy</h3>${(()=>{const hoy=C.filter(c=>c.ultScan===HOY);return hoy.length?hoy.map(c=>`<div class="mov hist"><span>${esc(c.n)}<small>${NOM[c.tipo]} · ${SAL[c.s]}</small></span><b>${c.tipo==='man'?Math.min(c.sellos,10)+'/10':pctDe(c)+' %'}</b></div>`).join(''):'<p class="mini">Aún ninguna.</p>'})()}
+  <p class="mini" style="margin-top:12px">Para probar sin escáner: escribe un código (por ejemplo ${C[0].cod}) y pulsa Intro.</p>`},
+cobro(){const c=C.find(x=>String(x.id)===f.cli)||C[0],k=calc(c),man=c.tipo==='man';
+  const marcaTxt={week:'Visita de esta semana (cualquier servicio)',color:'Lleva color o corte · aplica el descuento y marca la visita del mes',man:'Corte o degradado · suma 1 sello'}[c.tipo];
+  return `<h2>Cobrar con tarjeta</h2><p class="mini">En la versión real, se lee el QR del móvil del cliente o se busca por teléfono.</p>
+  <label for="fcli">Cliente</label><select id="fcli">${C.map(x=>`<option value="${x.id}" ${String(x.id)===f.cli?'selected':''}>${esc(x.n)} · ${NOM[x.tipo]} · ${x.cod}</option>`).join('')}</select>
+  <div class="sum"><div><span>Tarjeta</span><span>${NOM[c.tipo]}</span></div><div><span>${man?'Sellos':'Descuento hoy'}</span><span>${estadoTxt(c)}</span></div><div><span>Puntos</span><span>${c.puntos} (${eur(c.puntos*.05)})</span></div></div>
+  ${man&&c.sellos>=10?`<label class="chk"><input type="checkbox" id="fgratis" ${f.gratis?'checked':''}> Canjear el corte gratis</label>${f.gratis?`<label for="fpc">Precio del corte (€)</label><input id="fpc" inputmode="decimal" value="${esc(f.pc)}">`:''}`:''}
+  ${f.gratis&&man?'':`<label class="chk"><input type="checkbox" id="fmarca" ${f.marca?'checked':''}> ${marcaTxt}</label>`}${c.tipo==='color'&&!f.marca&&pctDe(c)?'<p class="mini">Sin color ni corte hoy no hay descuento de la Color &amp; Cut.</p>':''}
+  <div class="g2"><div><label for="fserv">Total servicios (€)</label><input id="fserv" inputmode="decimal" value="${esc(f.serv)}" placeholder="Ej.: ${man?'15':'54'}"></div>
+  <div><label for="fprod">Productos (€)</label><input id="fprod" inputmode="decimal" value="${esc(f.prod)}" placeholder="0"></div></div>
+  <label class="chk"><input type="checkbox" id="fusar" ${f.usar?'checked':''} ${c.puntos>=100?'':'disabled'}> Gastar puntos en los productos ${c.puntos<100?'(necesita 100)':''}</label>${f.usar&&!k.prod?'<p class="mini">Los puntos solo se gastan en productos: pon el importe de productos.</p>':''}
+  ${k.serv+k.prod?`<div class="sum"><div><span>Servicios</span><span>${eur(k.serv)}</span></div>${k.pct?`<div><span>Tarjeta ${NOM[c.tipo]} ${k.pct} %</span><span>− ${eur(k.dto)}</span></div>`:''}${k.gratis?`<div><span>Corte gratis</span><span>− ${eur(k.dto)}</span></div>`:''}
+  ${k.prod?`<div><span>Productos (sin descuento)</span><span>${eur(k.prod)}</span></div>`:''}${k.dpts?`<div><span>Puntos en productos (${k.pts})</span><span>− ${eur(k.dpts)}</span></div>`:''}
+  <div class="tot"><span>A cobrar</span><span>${eur(k.cobrar)}</span></div>${k.gana?`<div><span>Puntos que gana</span><span>+${k.gana}</span></div>`:''}${man&&f.marca&&!k.gratis?`<div><span>Sellos</span><span>${c.sellos+1}/10</span></div>`:''}</div>
+  <button class="btn" id="fok">Registrar cobro</button>`:''}
+  <p class="mini" style="margin-top:12px">El mismo descuento hay que aplicarlo en la caja de Wilapp hasta que lo conectemos.</p>`},
+clientes(){
+  return `<h2>Clientes con tarjeta</h2><p class="mini">Pulsa un nombre para ver su tarjeta en el móvil. Cada cliente tiene una sola tarjeta.</p>
+  <div class="scroll"><table class="stack"><thead><tr><th>Cliente</th><th>Salón</th><th>Tarjeta</th><th>Estado</th><th class="n">Puntos</th><th>Última visita</th></tr></thead><tbody>
+  ${C.map(c=>{const ult=[...c.week,...c.color].sort().pop();
+   return `<tr class="${c===sel?'sel':''}"><td data-l="Cliente"><button class="lnk" data-ver="${c.id}">${esc(c.n)}</button></td><td data-l="Salón">${SAL[c.s]}</td>
+   <td data-l="Tarjeta">${NOM[c.tipo]}</td><td data-l="Estado">${estadoTxt(c)}</td>
+   <td data-l="Puntos" class="n">${c.puntos}</td><td data-l="Última visita">${ult?fecha(ult):'—'}</td></tr>`}).join('')}
+  </tbody></table></div>`},
+avisos(){
+  const lista=C.filter(c=>avisoTexto(c));
+  return `<h2>Clientes a los que conviene avisar</h2><p class="mini">Week y Color &amp; Cut: a punto de perder su descuento. Man: les falta 1 sello o tienen un corte gratis. Un mensaje a tiempo llena huecos de agenda.</p>
+  ${lista.length?lista.map(c=>`<h3>${esc(c.n)} · ${NOM[c.tipo]} · ${SAL[c.s]}</h3><div class="msgbox">${esc(avisoTexto(c))}</div><button class="btn sec" data-copy="${c.id}">Copiar mensaje</button>`).join(''):'<p class="mini">Ahora mismo no hay nadie a quien avisar.</p>'}
+  <p class="mini" style="margin-top:14px">En la versión real se pueden enviar solos por WhatsApp desde el bot, por ejemplo cada lunes y el día 1 de cada mes.</p>`},
+resumen(){
+  const cnt=t=>C.filter(c=>c.tipo===t).length,a20=C.filter(c=>pctDe(c)===20).length,a10=C.filter(c=>pctDe(c)===10).length;
+  const mes=HOY.slice(0,7),movs=C.flatMap(c=>c.movs).filter(m=>m.f.startsWith(mes));
+  const dto=movs.reduce((a,m)=>a+m.dto,0),cob=movs.reduce((a,m)=>a+m.cobrado,0),gratis=movs.filter(m=>m.gratis).length;
+  const porSal=Object.keys(SAL).map(s=>{const cs=C.filter(c=>c.s===s);return {s,w:cs.filter(c=>c.tipo==='week').length,k:cs.filter(c=>c.tipo==='color').length,m:cs.filter(c=>c.tipo==='man').length}});
+  return `<h2>Resumen del programa</h2>
+  <div class="kpis"><div class="kpi"><b>${C.length}</b><span>clientes con tarjeta</span></div><div class="kpi"><b>${a20}</b><span>con 20 % activo</span></div><div class="kpi"><b>${a10}</b><span>con 10 % activo</span></div><div class="kpi"><b>${eur(dto)}</b><span>descuento dado este mes${movs.length?'':' (registra un cobro)'}</span></div></div>
+  <h3>Tarjetas por salón</h3><div class="scroll"><table class="stack"><thead><tr><th>Salón</th><th class="n">Week</th><th class="n">Color &amp; Cut</th><th class="n">Man</th></tr></thead><tbody>
+  ${porSal.map(r=>`<tr><td data-l="Salón">${SAL[r.s]}</td><td data-l="Week" class="n">${r.w}</td><td data-l="Color &amp; Cut" class="n">${r.k}</td><td data-l="Man" class="n">${r.m}</td></tr>`).join('')}
+  <tr><td data-l="Salón"><b>Total</b></td><td data-l="Week" class="n"><b>${cnt('week')}</b></td><td data-l="Color &amp; Cut" class="n"><b>${cnt('color')}</b></td><td data-l="Man" class="n"><b>${cnt('man')}</b></td></tr></tbody></table></div>
+  ${movs.length?`<h3>Cobros con tarjeta este mes</h3><div class="sum"><div><span>Facturado</span><span>${eur(cob)}</span></div><div><span>Descuento por tarjetas</span><span>${eur(dto)}</span></div><div><span>Cortes gratis Man canjeados</span><span>${gratis}</span></div><div><span>Descuento medio</span><span>${(dto/(cob+dto)*100).toFixed(1).replace('.',',')} %</span></div></div>`:''}
+  <p class="mini">En la versión real añadiríamos: cuántas veces viene de media cada cliente antes y después de la tarjeta, y cuánto factura cada uno al año.</p>`},
+enviar(){
+  const c=sel,tel='34'+String(c.t).replace(/\D/g,'').slice(-9),txt=bienvenida(c);
+  return `<h2>Enviar la tarjeta</h2><p class="mini">Elige cómo le llega a cada cliente. Las tres formas se pueden usar a la vez.</p>
+  <label for="ecli">Cliente</label><select id="ecli">${C.map(x=>`<option value="${x.id}" ${x===c?'selected':''}>${esc(x.n)} · ${esc(x.t)}</option>`).join('')}</select>
+  <h3>Mensaje de bienvenida</h3><div class="msgbox">${esc(txt)}</div>
+  <div class="opts">
+   <div class="optc"><b>1 · Automático al darle de alta</b><p>En la versión real, el bot de WhatsApp de los salones lo envía solo en cuanto se crea la tarjeta. Nadie tiene que hacer nada. Meta cobra unos céntimos por mensaje.</p></div>
+   <div class="optc"><b>2 · Desde el WhatsApp del salón, gratis</b><p>Se abre WhatsApp con el mensaje ya escrito para ese cliente; solo hay que pulsar enviar.</p>
+    <div class="row2"><a class="btn" href="https://wa.me/${tel}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Abrir WhatsApp</a><button class="btn sec" data-copyt="1">Copiar mensaje</button></div></div>
+   <div class="optc"><b>3 · Que se la active el propio cliente</b><p>Con un cartel con QR en el espejo y en recepción, el enlace en la bio de Instagram y una historia. El cliente escanea, pone su móvil y recibe su tarjeta.</p></div>
+  </div>
+  <h3>Cartel para el salón</h3>
+  <div class="poster"><div class="qr" id="qrp"></div><div><b>Elige tu tarjeta gratis</b><p>Week y Color &amp; Cut: hasta un 20 % en todos tus servicios. Man: con 10 cortes, uno gratis. Escanea y actívala.</p></div></div>
+  <p class="mini">El QR lleva a ${URL_APP} (dirección propuesta). Te preparo el cartel para imprimir cuando quieras.</p>
+  <h3>Para Instagram</h3><div class="msgbox">${esc('✨ Nuevas tarjetas Marco Aldany: Week y Color & Cut, hasta un 20 % en todos tus servicios; Man, tu corte gratis cada 10. Elige la tuya gratis en el enlace de la bio 💜')}</div>
+  <h3>Lanzamiento a los clientes que ya tenéis</h3><p class="mini">Un único envío desde el bot a los clientes de Wilapp con móvil, con su enlace personal ya creado. Es la forma más rápida de que la tengan todos el primer día. Antes de enviarlo te confirmo cuántos mensajes son y lo que cuesta.</p>`},
+alta(){
+  return `<h2>Dar de alta una tarjeta</h2><p class="mini">Gratis. Al cliente le llega un WhatsApp con el enlace a su tarjeta.</p>
+  <form id="falta"><label for="an">Nombre y apellido</label><input id="an" required autocomplete="off">
+  <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" required pattern="[0-9 +]{9,15}" autocomplete="off">
+  <label for="atipo">Tarjeta (solo una por cliente)</label><select id="atipo"><option value="week">Week · cualquier servicio: 20 % semanal, 10 % cada 15 días</option><option value="color">Color &amp; Cut · color o corte: 20 % mensual, 10 % cada 2 meses (solo el día de color o corte)</option><option value="man">Man · caballeros: 10 sellos = corte gratis</option></select>
+  <label for="as">Salón</label><select id="as">${Object.entries(SAL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+  <label class="chk"><input type="checkbox" required> El cliente acepta la política de privacidad</label>
+  <button class="btn" type="submit" style="margin-top:14px">Crear tarjeta</button></form>`}
+};
+function render(){
+  $('tabs').innerHTML=TABS.map(([k,t])=>`<button class="${k===tab?'on':''}" data-tab="${k}">${t}</button>`).join('');
+  $('pbody').innerHTML=V[tab]();
+  const bind=(id,k,ev)=>{const el=$(id);if(!el)return;el.addEventListener(ev||'input',()=>{f[k]=el.type==='checkbox'?el.checked:el.value;
+    if(k==='cli'){sel=C.find(x=>String(x.id)===f.cli);f.usar=false;f.gratis=false;f.marca=sel.tipo==='week';phone()}
+    const pos=el.selectionStart;render();if(!ev){const n=$(id);n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}})};
+  bind('fcli','cli','change');bind('fmarca','marca','change');bind('fgratis','gratis','change');bind('fpc','pc');bind('fusar','usar','change');bind('fserv','serv');bind('fprod','prod');
+  const ok=$('fok');
+  if(ok)ok.onclick=()=>{const c=C.find(x=>String(x.id)===f.cli),k=calc(c);let sello='';
+    if(k.gratis){c.sellos=0;sello='corte gratis'}else if(f.marca){if(c.tipo==='man'){c.sellos++;sello='+1 sello'}else c[c.tipo].push(HOY)}
+    c.puntos+=k.gana-k.pts;
+    const r=[k.pct?'−'+k.pct+' %':'',sello,k.pts?'−'+k.pts+' pts':'',k.gana?'+'+k.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
+    c.movs.push({f:HOY,s:c.s,t:(k.gratis?'Corte gratis':f.marca?{week:'Visita semanal',color:'Color / corte',man:'Corte / degradado'}[c.tipo]:'Visita')+' · '+eur(k.cobrar),r,dto:k.dto+k.dpts,cobrado:k.cobrar,gratis:k.gratis});
+    Object.assign(f,{marca:c.tipo==='week',gratis:false,serv:'',prod:'',usar:false});sel=c;toast('Cobro registrado · '+r);phone(true);render()};
+  const fs=$('fscan');if(fs){const inp=$('scan');fs.onsubmit=e=>{e.preventDefault();const v=inp.value;inp.value='';registrarScan(v)};setTimeout(()=>{try{inp.focus()}catch(e){}},0)}
+  const cj=$('canj');if(cj)cj.onclick=()=>{const c=ultimo.c;c.sellos=0;c.ultScan=HOY;c.movs.push({f:HOY,s:c.s,t:'Corte gratis canjeado',r:'sellos a 0',dto:0,cobrado:0,gratis:true});ultimo={tipo:'ok',c,txt:'Corte gratis canjeado. La tarjeta vuelve a 0/10.'};phone(true);render()};
+  const ec=$('ecli');if(ec)ec.onchange=()=>{sel=C.find(x=>String(x.id)===ec.value);f.cli=ec.value;phone(true);render()};
+  const qp=$('qrp');if(qp&&window.qrcode){try{const g=qrcode(0,'M');g.addData(URL_APP);g.make();qp.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
+  const fa=$('falta');
+  if(fa)fa.onsubmit=e=>{e.preventDefault();const c={id:C.length+1,n:$('an').value.trim(),t:$('at').value.trim(),s:$('as').value,tipo:$('atipo').value,cod:'MA'+(490000+C.length*41),week:[],color:[],sellos:0,puntos:0,movs:[]};
+    C.push(c);sel=c;f.cli=String(c.id);tab='enviar';toast('Tarjeta creada · elige cómo enviársela');phone(true);render()};
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tab],[data-ver],[data-copy],[data-copyt]');if(!b)return;
+  if(b.dataset.copyt){try{navigator.clipboard.writeText(bienvenida(sel)).then(()=>toast('Mensaje copiado'),()=>toast('No se pudo copiar: selecciónalo a mano'))}catch(err){toast('No se pudo copiar: selecciónalo a mano')}return}
+  if(b.dataset.tab){tab=b.dataset.tab;render()}
+  else if(b.dataset.ver){sel=C.find(x=>String(x.id)===b.dataset.ver);f.cli=b.dataset.ver;phone(true);render()}
+  else if(b.dataset.copy){const t=avisoTexto(C.find(x=>String(x.id)===b.dataset.copy));
+    try{navigator.clipboard.writeText(t).then(()=>toast('Mensaje copiado'),()=>toast('No se pudo copiar: selecciónalo a mano'))}catch(err){toast('No se pudo copiar: selecciónalo a mano')}}});
+phone();render();
+}
+</script>
+</body>
+</html>
