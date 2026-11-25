@@ -373,7 +373,7 @@ tarjetas(){
      <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" value="${esc(a.t)}">
      <label class="chk"><input type="checkbox" id="ap" required> Acepto la política de privacidad y recibir mis ventajas por correo</label>
      <button class="btn" type="submit" style="margin-top:12px">Activar gratis</button></form>
-     <p class="empty">¿Ya eres cliente? Usa el mismo teléfono que tienes en el salón y recuperamos tus visitas.</p>`;
+     <p class="empty">Tu tarjeta se activa al momento. En tu primera visita la validamos en el salón. ¿Ya eres cliente? Usa el mismo teléfono que tienes en el salón.</p>`;
     return `<button class="back" data-alta="1">‹ Volver</button><h2>Revisa tu correo</h2><p class="empty">Te hemos enviado un código a <b>${esc(a.e||'')}</b>. Si no lo ves en un minuto, mira en la carpeta de spam o promociones. En esta prueba, el código es 1234.</p>
      <form id="fcod"><label for="ac">Código</label><input id="ac" inputmode="numeric" autocomplete="one-time-code" maxlength="4" required>
      <button class="btn" type="submit" style="margin-top:12px">Confirmar</button></form>`}
@@ -386,7 +386,7 @@ tarjetas(){
     <p class="empty">Al cambiar, pierdes lo que llevas en la tarjeta actual y la nueva empieza desde cero. Tus puntos se mantienen.</p>`}
   const movs=tarjeta.movs.slice().reverse().slice(0,8),cab=tarjeta.tipo==='caballero';
   return `<h2>Mi tarjeta</h2>
-  <div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
+  ${tarjeta.validada===false?'<div class="sum" style="margin-top:0">Tarjeta activa. Se valida en tu primera visita al salón, al escanearla.</div>':''}<div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
   <div class="bar"><svg id="bc"></svg></div>
   <div class="grid2" style="margin-bottom:14px"><button class="btn sec" data-inst="1">Guardar en el móvil</button><button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
   ${cab?sellosHtml():cardHtml(tarjeta.tipo)}
@@ -465,7 +465,11 @@ function render(){
   const bind=(id,k,ev)=>{const el=$(id);if(el)el.addEventListener(ev||'input',()=>{st.r[k]=el.type==='checkbox'?el.checked:el.value;const typing=!ev,pos=el.selectionStart;render();const n=$(id);if(typing&&n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}})};
   bind('rcod','cod');bind('rserv','serv');bind('rprod','prod');bind('rusar','usar','change');bind('rmarca','marca','change');bind('rgratis','gratis','change');bind('rpc','precioCorte');
   const fa=$('falta');
-  if(fa)fa.onsubmit=e=>{e.preventDefault();st.alta.n=$('an').value.trim();st.alta.e=$('ae').value.trim();st.alta.t=$('at').value.trim();st.alta.paso=2;render()};
+  if(fa)fa.onsubmit=e=>{e.preventDefault();const n=$('an').value.trim(),em=$('ae').value.trim(),tel=$('at').value.replace(/[\s.-]/g,'').replace(/^(\+34|0034)/,'');
+    if(!/^[67]\d{8}$/.test(tel)){toast('Revisa el móvil: 9 cifras que empiecen por 6 o 7');$('at').focus();return}
+    // En la versión real: si ya existe una tarjeta con este móvil, no se muestra; se avisa de pedirla en el salón.
+    tarjeta={cod:nuevoCod(),tipo:st.alta.tipo,nombre:n,email:em,tel,alta:HOY(),validada:false,week:[],color:[],sellos:0,puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n,t:tel});
+    st.alta=null;toast('¡Tarjeta activada! ✓');render();$('main').scrollTop=0;abrirInst(true)};
   const fc=$('fcod');
   if(fc)fc.onsubmit=e=>{e.preventDefault();if($('ac').value.trim()!=='1234'){toast('Código incorrecto. En la prueba es 1234');return}
     tarjeta={cod:nuevoCod(),tipo:st.alta.tipo,nombre:st.alta.n,email:st.alta.e,tel:st.alta.t,alta:HOY(),week:[],color:[],sellos:0,puntos:0,movs:[]};store.set('tarjeta',tarjeta);store.set('cliente',{n:st.alta.n,t:st.alta.t});
@@ -476,7 +480,7 @@ function render(){
   if(rok)rok.onclick=()=>{const r=st.r,c=calcCobro(r),hoy=HOY(),t=tarjeta.tipo;let sello='';
     if(c.gratis){tarjeta.sellos=0;sello='corte gratis'}
     else if(r.marca){if(t==='caballero'){tarjeta.sellos=(tarjeta.sellos||0)+1;sello='+1 sello'}else tarjeta[t].push(hoy)}
-    tarjeta.puntos+=c.gana-c.pts;
+    tarjeta.validada=true;tarjeta.puntos+=c.gana-c.pts;
     const res=[c.pct?'−'+c.pct+' %':'',sello,c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
     tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Visita semanal',color:'Color / corte',caballero:'Corte / degradado'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
     store.set('tarjeta',tarjeta);toast('Cobro registrado · '+res);st.recep=false;st.r=null;render();$('main').scrollTop=0};
