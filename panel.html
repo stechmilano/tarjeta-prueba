@@ -85,6 +85,7 @@ input,select{width:100%;font:16px Manrope,sans-serif;padding:11px 12px;border-ra
 .sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:18px}
 .msgbox{background:var(--soft);border-radius:14px;padding:12px;font-size:14.5px;white-space:pre-wrap;margin:8px 0}
 .scroll{overflow-x:auto}
+.pbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:8px 12px;border-bottom:1px solid var(--line);font-size:14px}
 .pol h2{font-size:20px}.pol h3{font-size:15px;margin:12px 0 4px}.pol p,.pol ul{margin:0 0 6px}
 .scanbox{border:3px dashed var(--ac);border-radius:20px;padding:20px;text-align:center;margin:10px 0}
 .scanbox input{font-size:22px;text-align:center;letter-spacing:.08em;margin-top:10px}
@@ -127,7 +128,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 <div class="wrap">
   <div><p class="lbl">Móvil del cliente</p><div class="phone" id="phone"></div></div>
   <div><p class="lbl">Panel del salón (recepción y oficina)</p>
-    <div class="panel"><div class="tabs" id="tabs"></div><div class="pbody" id="pbody"></div></div>
+    <div class="panel"><div class="pbar"><label for="salonp" style="margin:0">Estás en el salón</label><select id="salonp" style="width:auto;min-height:40px"><option value="eu">Európolis</option><option value="hc">Heron City</option><option value="vv">Villaviciosa</option></select></div><div class="tabs" id="tabs"></div><div class="pbody" id="pbody"></div></div>
     <p class="mini" style="margin-top:10px">Datos de ejemplo. En la versión real, los clientes y visitas salen de Wilapp y el panel entra con la clave de cada salón.</p>
   </div>
 </div>
@@ -177,6 +178,7 @@ const C=[
 ].map(([n,s,tipo,h],i)=>({id:i+1,n,s,tipo,t:'6'+String(10000000+i*1234567).slice(0,8),cod:'MA'+(482110+i*37),
   alta:hace([200,330,90,364,40,150,300,120,20][i]),week:tipo==='week'?h.map(hace):[],color:tipo==='color'?h.map(mesAtras):[],sellos:tipo==='man'?h:0,puntos:[180,40,95,260,0,30,55,70,0][i],movs:[]}));
 C.forEach(c=>{c.ciclo=iso(aniv(c.alta,HOY))});
+let SALON_ACT='eu';
 let soloProd=false,busq='',ultimo=null,sel=C[0],tab='escanear',f={marca:true,gratis:false,pc:'15',serv:'',prod:'',usar:false,cli:String(C[0].id)};
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2400)}
@@ -251,7 +253,7 @@ function registrarScan(raw){
     c.sellos++;txt='Sello añadido: '+c.sellos+'/10';acc=c.sellos>=10?'Ya tiene 10 sellos: su próximo corte es gratis':'Sin descuento hoy · cobro normal';
   }else{c[c.tipo].push(HOY);txt=c.tipo==='week'?'Visita de la semana registrada':'Visita de color o corte registrada';acc=accion(c,pctAntes)}
   c.ultScan=HOY;
-  c.movs.push({f:HOY,s:c.s,t:'Escaneo · '+{week:'Visita semanal',color:'Color / corte',man:'Corte / degradado'}[c.tipo],r:c.tipo==='man'?'+1 sello':(pctAntes?'−'+pctAntes+' %':'activa descuento'),dto:0,cobrado:0});
+  c.movs.push({visita:true,f:HOY,s:SALON_ACT,t:'Escaneo · '+{week:'Visita semanal',color:'Color / corte',man:'Corte / degradado'}[c.tipo],r:c.tipo==='man'?'+1 sello':(pctAntes?'−'+pctAntes+' %':'activa descuento'),dto:0,cobrado:0});
   const nueva=c.validada===false;if(nueva)c.validada=true;
   ultimo={tipo:nueva?'warn':'ok',c,txt:(nueva?'PRIMERA VISITA: comprueba que el nombre y el móvil ('+c.t+') son del cliente. ':'')+txt,acc};phone(true);render();
 }
@@ -307,16 +309,18 @@ avisos(){
   <p class="mini" style="margin-top:14px">En la versión real se envían solos <b>por correo</b> (gratis), cada lunes y el día 1 de cada mes, solo a quien aceptó recibir avisos.</p>`},
 resumen(){
   const cnt=t=>C.filter(c=>c.tipo===t).length,a20=C.filter(c=>pctDe(c)===20).length,a10=C.filter(c=>pctDe(c)===10).length;
-  const mes=HOY.slice(0,7),movs=C.flatMap(c=>c.movs).filter(m=>m.f.startsWith(mes));
-  const dto=movs.reduce((a,m)=>a+m.dto,0),cob=movs.reduce((a,m)=>a+m.cobrado,0),gratis=movs.filter(m=>m.gratis).length;
-  const porSal=Object.keys(SAL).map(s=>{const cs=C.filter(c=>c.s===s);return {s,w:cs.filter(c=>c.tipo==='week').length,k:cs.filter(c=>c.tipo==='color').length,m:cs.filter(c=>c.tipo==='man').length}});
+  const mes=HOY.slice(0,7),movsC=C.flatMap(c=>c.movs.map(m=>({...m,c}))).filter(m=>m.f.startsWith(mes));
+  const visitas=movsC.filter(m=>m.visita).length,dados=movsC.reduce((a,m)=>a+(m.ptsDados||0),0),canj=movsC.reduce((a,m)=>a+(m.ptsCanje||0),0),gratis=movsC.filter(m=>m.gratis).length;
+  const vivos=C.reduce((a,c)=>a+(c.puntos||0),0);
+  const porSal=Object.keys(SAL).map(s=>{const cs=C.filter(c=>c.s===s),ms=movsC.filter(m=>m.s===s);return {s,w:cs.filter(c=>c.tipo==='week').length,k:cs.filter(c=>c.tipo==='color').length,m:cs.filter(c=>c.tipo==='man').length,v:ms.filter(m=>m.visita).length,pd:ms.reduce((a,m)=>a+(m.ptsDados||0),0),pc:ms.reduce((a,m)=>a+(m.ptsCanje||0),0)}});
   return `<h2>Resumen del programa</h2>
-  <div class="kpis"><div class="kpi"><b>${C.length}</b><span>clientes con tarjeta</span></div><div class="kpi"><b>${a20}</b><span>con 20 % activo</span></div><div class="kpi"><b>${a10}</b><span>con 10 % activo</span></div><div class="kpi"><b>${eur(dto)}</b><span>descuento dado este mes${movs.length?'':' (registra un cobro)'}</span></div></div>
-  <h3>Tarjetas por salón</h3><div class="scroll"><table class="stack"><thead><tr><th>Salón</th><th class="n">Week</th><th class="n">Color &amp; Cut</th><th class="n">Man</th></tr></thead><tbody>
-  ${porSal.map(r=>`<tr><td data-l="Salón">${SAL[r.s]}</td><td data-l="Week" class="n">${r.w}</td><td data-l="Color &amp; Cut" class="n">${r.k}</td><td data-l="Man" class="n">${r.m}</td></tr>`).join('')}
-  <tr><td data-l="Salón"><b>Total</b></td><td data-l="Week" class="n"><b>${cnt('week')}</b></td><td data-l="Color &amp; Cut" class="n"><b>${cnt('color')}</b></td><td data-l="Man" class="n"><b>${cnt('man')}</b></td></tr></tbody></table></div>
-  ${movs.length?`<h3>Cobros con tarjeta este mes</h3><div class="sum"><div><span>Facturado</span><span>${eur(cob)}</span></div><div><span>Descuento por tarjetas</span><span>${eur(dto)}</span></div><div><span>Cortes gratis Man canjeados</span><span>${gratis}</span></div><div><span>Descuento medio</span><span>${(dto/(cob+dto)*100).toFixed(1).replace('.',',')} %</span></div></div>`:''}
-  <p class="mini">En la versión real añadiríamos: cuántas veces viene de media cada cliente antes y después de la tarjeta, y cuánto factura cada uno al año.</p>`},
+  <div class="kpis"><div class="kpi"><b>${C.length}</b><span>clientes con tarjeta</span></div><div class="kpi"><b>${a20}</b><span>con 20 % activo</span></div><div class="kpi"><b>${a10}</b><span>con 10 % activo</span></div><div class="kpi"><b>${visitas}</b><span>visitas con tarjeta este mes</span></div></div>
+  <h3>Puntos este mes</h3>
+  <div class="kpis"><div class="kpi"><b>${dados}</b><span>puntos dados</span></div><div class="kpi"><b>${canj}</b><span>puntos canjeados (= ${eur(canj*.05)} en productos)</span></div><div class="kpi"><b>${vivos}</b><span>puntos pendientes de canjear (= ${eur(vivos*.05)})</span></div><div class="kpi"><b>${gratis}</b><span>cortes gratis Man canjeados</span></div></div>
+  <h3>Por salón</h3><div class="scroll"><table class="stack"><thead><tr><th>Salón</th><th class="n">Week</th><th class="n">Color &amp; Cut</th><th class="n">Man</th><th class="n">Visitas este mes</th><th class="n">Puntos dados</th><th class="n">Puntos canjeados</th></tr></thead><tbody>
+  ${porSal.map(r=>`<tr><td data-l="Salón">${SAL[r.s]}</td><td data-l="Week" class="n">${r.w}</td><td data-l="Color &amp; Cut" class="n">${r.k}</td><td data-l="Man" class="n">${r.m}</td><td data-l="Visitas este mes" class="n">${r.v}</td><td data-l="Puntos dados" class="n">${r.pd}</td><td data-l="Puntos canjeados" class="n">${r.pc}</td></tr>`).join('')}
+  <tr><td data-l="Salón"><b>Total</b></td><td data-l="Week" class="n"><b>${cnt('week')}</b></td><td data-l="Color &amp; Cut" class="n"><b>${cnt('color')}</b></td><td data-l="Man" class="n"><b>${cnt('man')}</b></td><td data-l="Visitas este mes" class="n"><b>${visitas}</b></td><td data-l="Puntos dados" class="n"><b>${dados}</b></td><td data-l="Puntos canjeados" class="n"><b>${canj}</b></td></tr></tbody></table></div>
+  <p class="mini">Las tarjetas se cuentan por salón de alta; las visitas y los puntos, por el salón donde se escanea. ${movsC.length?'':'Escanea alguna tarjeta y toca un tramo de gasto para ver los números.'}</p>`},
 enviar(){
   const c=sel,txt=bienvenida(c);
   return `<h2>Enviar la tarjeta</h2><p class="mini">Dos formas, que se pueden usar a la vez. Si el cliente está en el salón, lo más rápido es que escanee el QR del cartel con su móvil.</p>
@@ -360,7 +364,7 @@ function render(){
   const fs=$('fscan');if(fs){const inp=$('scan');fs.onsubmit=e=>{e.preventDefault();const v=inp.value;inp.value='';registrarScan(v)};if(!busq)setTimeout(()=>{try{inp.focus()}catch(e){}},0)}
   const sp=$('solop');if(sp)sp.onchange=()=>{soloProd=sp.checked;setTimeout(()=>{try{$('scan').focus()}catch(e){}},0)};
   const bq=$('busq');if(bq){bq.oninput=()=>{busq=bq.value;const p=bq.selectionStart;render();const n=$('busq');n.focus();try{n.setSelectionRange(p,p)}catch(e){}}}
-  const cj=$('canj');if(cj)cj.onclick=()=>{const c=ultimo.c;c.sellos=0;c.ultScan=HOY;c.movs.push({f:HOY,s:c.s,t:'Corte gratis canjeado',r:'sellos a 0',dto:0,cobrado:0,gratis:true});ultimo={tipo:'ok',c,txt:'Corte gratis canjeado. La tarjeta vuelve a 0/10.'};phone(true);render()};
+  const cj=$('canj');if(cj)cj.onclick=()=>{const c=ultimo.c;c.sellos=0;c.ultScan=HOY;c.movs.push({f:HOY,s:SALON_ACT,t:'Corte gratis canjeado',r:'sellos a 0',dto:0,cobrado:0,gratis:true});ultimo={tipo:'ok',c,txt:'Corte gratis canjeado. La tarjeta vuelve a 0/10.'};phone(true);render()};
   const ec=$('ecli');if(ec)ec.onchange=()=>{sel=C.find(x=>String(x.id)===ec.value);f.cli=ec.value;phone(true);render()};
   const qp=$('qrp');if(qp&&window.qrcode){try{const g=qrcode(0,'M');g.addData(URL_APP);g.make();qp.innerHTML=g.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
   const fa=$('falta');
@@ -371,14 +375,15 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-reenvio],[
   if(b.dataset.reenvio){toast('Prueba: en la versión real se reenvía el correo con el enlace');return}
   if(b.dataset.buscar){busq='';registrarScan(b.dataset.buscar);return}
   if(b.dataset.tramo&&ultimo&&ultimo.c){const c=ultimo.c,[a,z,p]=TRAMOS[+b.dataset.tramo];c.puntos+=p;c.ptsHoy=HOY;
-    c.movs.push({f:HOY,s:c.s,t:'Gasto '+(z?a+'–'+z+' €':'+'+a+' €'),r:'+'+p+' pts',dto:0,cobrado:0});ultimo.ptsTxt='+'+p+' puntos sumados';phone(true);render();return}
+    c.movs.push({ptsDados:p,f:HOY,s:SALON_ACT,t:'Gasto '+(z?a+'–'+z+' €':'+'+a+' €'),r:'+'+p+' pts',dto:0,cobrado:0});ultimo.ptsTxt='+'+p+' puntos sumados';phone(true);render();return}
   if(b.dataset.canjea&&ultimo&&ultimo.c){const c=ultimo.c,p=+b.dataset.canjea;if(c.puntos<p)return;c.puntos-=p;
-    c.movs.push({f:HOY,s:c.s,t:'Canje en productos · '+eur(p*.05),r:'−'+p+' pts',dto:p*.05,cobrado:0});ultimo.ptsTxt='Canjeados '+p+' puntos: descuenta '+eur(p*.05)+' en los productos';phone(true);render();return}
+    c.movs.push({ptsCanje:p,f:HOY,s:SALON_ACT,t:'Canje en productos · '+eur(p*.05),r:'−'+p+' pts',dto:p*.05,cobrado:0});ultimo.ptsTxt='Canjeados '+p+' puntos: descuenta '+eur(p*.05)+' en los productos';phone(true);render();return}
   if(b.dataset.copyt){try{navigator.clipboard.writeText(bienvenida(sel)).then(()=>toast('Mensaje copiado'),()=>toast('No se pudo copiar: selecciónalo a mano'))}catch(err){toast('No se pudo copiar: selecciónalo a mano')}return}
   if(b.dataset.tab){tab=b.dataset.tab;render()}
   else if(b.dataset.ver){sel=C.find(x=>String(x.id)===b.dataset.ver);f.cli=b.dataset.ver;phone(true);render()}
   else if(b.dataset.copy){const t=avisoTexto(C.find(x=>String(x.id)===b.dataset.copy));
     try{navigator.clipboard.writeText(t).then(()=>toast('Mensaje copiado'),()=>toast('No se pudo copiar: selecciónalo a mano'))}catch(err){toast('No se pudo copiar: selecciónalo a mano')}}});
+document.getElementById('salonp').onchange=e=>{SALON_ACT=e.target.value;toast('Panel de '+SAL[SALON_ACT]);render()};
 phone();render();
 }
 </script>
