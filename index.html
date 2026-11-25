@@ -164,7 +164,7 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
   <div class="notes">
     <h1>Tarjetas Week, Color y Man, en el móvil del cliente</h1>
     <p>El cliente ve en todo momento qué descuento tiene y hasta qué día lo mantiene. Eso es lo que le hace volver.</p>
-    <p>Prueba: en «Tarjeta» elige una de las tres, actívala, pide una cita (sale el precio con descuento) y registra un cobro desde «Recepción».</p>
+    <p>Prueba: en «Tarjeta» elige una de las tres y actívala; en «Cita» se reserva en vuestra web o por WhatsApp; registra un cobro desde «Recepción».</p>
     <p>Semanas de lunes a domingo y meses naturales: cuenta la semana o el mes de la visita, no el día exacto.</p>
   </div>
 </div>
@@ -174,9 +174,11 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
 <script>
 {
 const SALONES=[
- {id:'vv',nombre:'Villaviciosa de Odón',ig:'marcoaldany_villaviciosa',barbero:'Alexis',maps:'Marco Aldany Villaviciosa de Odón'},
- {id:'hc',nombre:'Heron City · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Hamza',maps:'Marco Aldany Heron City Las Rozas'},
- {id:'eu',nombre:'Európolis · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Martín',maps:'Marco Aldany Európolis Las Rozas'}];
+ {id:'vv',nombre:'Villaviciosa de Odón',ig:'marcoaldany_villaviciosa',barbero:'Alexis',maps:'Marco Aldany Villaviciosa de Odón',web:'https://stechmilano.com/marco-aldany-villaviciosa-de-odon/',reserva:'https://red.wilapp.com/profesional/marco-aldany-villaviciosa-de-odon-dbaf21?locked=true'},
+ {id:'hc',nombre:'Heron City · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Hamza',maps:'Marco Aldany Heron City Las Rozas',web:'https://stechmilano.com/marco-aldany-cc-heron-city/',reserva:'https://red.wilapp.com/profesional/marco-aldany-cc-heron-city-a4bf2b?locked=true'},
+ {id:'eu',nombre:'Európolis · Las Rozas',ig:'marcoaldany_lasrozas',barbero:'Martín',maps:'Marco Aldany Európolis Las Rozas',web:'https://stechmilano.com/marco-aldany-europolis/',reserva:'https://red.wilapp.com/profesional/marco-aldany-europolis-426edd?locked=true'}];
+const WA='34665122755';
+const waLink=s=>'https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, quiero pedir cita en Marco Aldany '+s.nombre);
 // tipo: 'week' = entra en la tarjeta Week, 'color' = tarjeta Color
 const SERVICIOS=[
  {f:'Peinados',n:'Lavar + peinar · pelo corto',min:30,p:16,tipo:'week'},
@@ -301,9 +303,9 @@ const STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 
 const GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>';
 function sellosHtml(){const n=tarjeta.sellos||0,lleno=n>=10;
   return `<div class="lcard b pop">${DECO}<div class="top"><div><div class="name">Solo caballeros</div><div class="title">Tarjeta Man</div></div><div class="pct" style="font-size:52px">${Math.min(n,10)}/10<small>sellos</small></div></div>
-  <div class="msg">${lleno?'<b>¡Tienes un corte gratis!</b> Dilo al pagar en tu próxima visita.':n===9?'<b>¡Solo te falta 1!</b> Tu próximo corte suma el último sello.':`Te faltan <b>${10-n} cortes</b> para tu corte gratis.`}</div>
+  <div class="msg">${lleno?'<b>¡Tienes un corte gratis!</b> Dilo al pagar en tu próxima visita.':n===9?'<b>¡Solo te falta 1!</b> Tu próximo corte suma el último sello.':`Te faltan <b>${10-n} sellos</b> para tu corte gratis.`}</div>
   <div class="stamps">${Array.from({length:10},(_,i)=>`<div class="stamp ${i<n?'on':''} ${i===9&&n<10?'gift':''}">${i<n?STAR:i===9?GIFT:i+1}</div>`).join('')}</div>
-  <ul class="rules"><li>Cada corte de caballero suma 1 sello.</li><li>Con 10 sellos, el siguiente corte es gratis.</li></ul></div>`}
+  <ul class="rules"><li>Cada corte o degradado suma 1 sello.</li><li>Con 10 sellos, el siguiente corte es gratis.</li></ul></div>`}
 const pctHoy=()=>tarjeta&&TARJ[tarjeta.tipo]?estado(tarjeta.tipo).pct:0;
 function trackHtml(tipo){
   const T=TARJ[tipo],hoy=T.idx(HOY()),n=tipo==='week'?8:6,set=new Set(tarjeta[tipo].map(T.idx));
@@ -325,7 +327,6 @@ function cardHtml(tipo){
 
 const V={
 inicio(){
-  const prox=citas.filter(c=>c.dia>=HOY()).sort((a,b)=>(a.dia+hm(a.ini)).localeCompare(b.dia+hm(b.ini)))[0];
   let tiles;
   if(!tarjeta)tiles=`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Elige tu tarjeta gratis: Week, Color o Man<small>Ventajas por venir con frecuencia</small></span></button>`;
   else if(tarjeta.tipo==='caballero')tiles=`<button class="tile" style="background:linear-gradient(135deg,#14161c,#4a5568)" data-go="tarjetas"><span class="pct">${Math.min(tarjeta.sellos||0,10)}/10</span><span>Man<small>${(tarjeta.sellos||0)>=10?'¡Corte gratis!':'Sellos para tu corte gratis'}</small></span></button>
@@ -333,43 +334,27 @@ inicio(){
   else{const e=estado(tarjeta.tipo),w=tarjeta.tipo==='week';
    tiles=`<button class="tile ${w?'w':'c'}" data-go="tarjetas"><span class="pct">${e.pct} %</span><span>${NOMBRE[tarjeta.tipo]}<small>${e.pct===20?'Hasta el '+e.hasta20.replace('sábado ','sáb '):e.pct?'Sube al 20 % viniendo':(w?'Actívala esta semana':'Actívala este mes')}</small></span></button>
    <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)} en productos</small></button>`}
-  return `<div class="hero">${DECO}<b>${prox?'Tu próxima cita':'Tu momento de salón'}</b>
-  <p>${prox?esc(prox.serv)+' · '+fecha(prox.dia)+' a las '+hm(prox.ini)+' · '+esc(SALONES.find(s=>s.id===prox.salon).nombre):'Reserva en menos de un minuto y mira tu precio con descuento antes de confirmar.'}</p>
-  <button class="btn light" data-go="cita">${prox?'Ver mis citas':'Pedir cita'}</button></div>
+  return `<div class="hero">${DECO}<b>Tu momento de salón</b>
+  <p>Reserva en nuestra web o por WhatsApp en ${esc(salon().nombre)}.</p>
+  <div class="grid2" style="position:relative"><a class="btn light" href="${salon().reserva}" target="_blank" rel="noopener">Reservar online</a><a class="btn light" href="${waLink(salon())}" target="_blank" rel="noopener">WhatsApp</a></div></div>
   <div class="grid2">
    ${tiles}
    <button class="tile plain" data-go="promos">Promociones<small>Calendario de adviento</small></button>
    <button class="tile plain" data-go="salon">Tu salón<small>${esc(salon().nombre)}</small></button>
   </div>`},
 cita(){
-  const mias=citas.filter(c=>c.dia>=HOY()).sort((a,b)=>(a.dia+hm(a.ini)).localeCompare(b.dia+hm(b.ini)));
-  if(st.paso==='familia'){
-    const fams=[...new Set(SERVICIOS.map(s=>s.f))];
-    const misHtml=mias.map(c=>`<div class="card"><b>${esc(c.serv)}</b><br><small class="empty">${fecha(c.dia)} · ${hm(c.ini)} · ${esc(SALONES.find(s=>s.id===c.salon).nombre)} · ${esc(c.prof)}${c.pct?' · '+c.pct+' % dto.':''}</small>
-    <div class="row"><button class="btn sec" data-cancel="${c.id}">Anular</button><button class="btn sec" data-mover="${c.id}">Cambiar hora</button></div></div>`).join('');
-    return `${mias.length?'<h2>Mis citas</h2>'+misHtml+'<h3>Pedir otra cita</h3>':'<h2>Pedir cita</h2>'}
-    <div class="list">${fams.map(f=>{const t=SERVICIOS.find(s=>s.f===f).tipo;return `<button class="opt" data-fam="${f}"><span>${f}${t?`<br><span class="badge ${t==='week'?'w':'c'}">Tarjeta ${t==='week'?'Week':'Color'}</span>`:''}</span><span class="pr">›</span></button>`}).join('')}</div>`}
-  if(st.paso==='servicio'){
-    return `<button class="back" data-paso="familia">‹ Volver</button><h2>${st.fam}</h2><div class="list">${SERVICIOS.filter(s=>s.f===st.fam).map(s=>{const pc=tarjeta?pctHoy():0;
-      return `<button class="opt" data-serv="${SERVICIOS.indexOf(s)}"><span>${s.n}<small>${s.min} min${s.nota?' · '+s.nota:''}${s.barb?' · con '+esc(salon().barbero)+', barbero':''}</small></span><span class="pr">${pc?`<s>${eur(s.p)}</s>${eur(s.p*(1-pc/100))}`:eur(s.p)}</span></button>`}).join('')}</div>
-      ${tarjeta&&pctHoy()?'<p class="empty">Precio con tu descuento de hoy. Al elegir día se recalcula según la semana o el mes de la cita.</p>':''}`}
-  if(st.paso==='hora'){
-    const s=SERVICIOS[st.serv],ds=dias();if(!st.dia)st.dia=ds[0];
-    const hs=huecos(st.dia,s.min),pc=pctEn(s,st.dia);
-    return `<button class="back" data-paso="servicio">‹ Volver</button><h2>¿Cuándo?</h2><p class="empty">${s.n} · ${s.min} min${tarjeta&&TARJ[tarjeta.tipo]?` · <b>${pc} % con tu tarjeta ese día</b>`:''}${tarjeta&&tarjeta.tipo==='caballero'&&s.barb?' · <b>suma 1 sello</b>':''}</p>
-    <div class="chips">${ds.map(d=>{const x=dt(d);return `<button class="chip ${d===st.dia?'sel':''}" data-dia="${d}"><small>${DIAS[x.getDay()]}</small>${x.getDate()} ${MESES[x.getMonth()]}</button>`}).join('')}</div>
-    <h3>Horas libres</h3>${hs.length?`<div class="times">${hs.map(m=>`<button class="chip" data-hora="${m}">${hm(m)}</button>`).join('')}</div>`:'<p class="empty">Este día no quedan huecos. Prueba otro.</p>'}`}
-  if(st.paso==='datos'){
-    const s=SERVICIOS[st.serv],cli=store.get('cliente',{n:'',t:''}),pc=pctEn(s,st.dia);
-    return `<button class="back" data-paso="hora">‹ Volver</button><h2>Confirma tu cita</h2>
-    <div class="sum"><div><span>Salón</span><span>${esc(salon().nombre)}</span></div><div><span>Servicio</span><span>${s.n}</span></div>
-    <div><span>Día</span><span>${fecha(st.dia)}, ${hm(st.hora)}</span></div><div><span>Profesional</span><span>${s.barb?esc(salon().barbero):'Sin preferencia'}</span></div>
-    <div><span>Precio</span><span>${eur(s.p)}</span></div>${pc?`<div><span>Tu tarjeta ${NOMBRE[tarjeta.tipo]}</span><span>− ${pc} %</span></div>`:''}
-    <div class="tot"><span>Pagarás</span><span>${eur(s.p*(1-pc/100))}</span></div></div>
-    <form id="f"><label for="nom">Nombre</label><input id="nom" autocomplete="name" required value="${esc(cli.n)}">
-    <label for="tel">Teléfono</label><input id="tel" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +]{9,15}" value="${esc(cli.t)}">
-    <p class="empty">Te enviaremos un recordatorio por WhatsApp 24 h antes.</p><button class="btn" type="submit">Reservar cita</button></form>`}
-},
+  const s=salon();let ventaja='';
+  if(tarjeta){if(tarjeta.tipo==='caballero'){const n=tarjeta.sellos||0;ventaja=n>=10?'Tienes un <b>corte gratis</b> con tu Tarjeta Man: dilo al pagar.':`Tu Tarjeta Man lleva <b>${n}/10 sellos</b>: cada corte o degradado suma uno.`}
+    else{const e=estado(tarjeta.tipo);ventaja=e.pct?`Con tu Tarjeta ${NOMBRE[tarjeta.tipo]} tienes un <b>${e.pct} %</b> en todos tus servicios si vienes antes del <b>${e.pct===20?e.hasta20:e.hasta10}</b>.`:`Con tu Tarjeta ${NOMBRE[tarjeta.tipo]}, esta visita activa tu descuento para la próxima.`}}
+  return `<h2>Pedir cita</h2><p class="empty">${esc(s.nombre)} · Elige cómo prefieres reservar.</p>
+  ${ventaja?`<div class="sum" style="margin-top:0">${ventaja}<br><span class="empty" style="font-size:13px">El descuento se aplica al pagar en el salón.</span></div>`:''}
+  <div class="links">
+   <a class="btn" href="${s.reserva}" target="_blank" rel="noopener">Reservar online</a>
+   <a class="btn sec" href="${waLink(s)}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
+   <a class="btn sec" href="${s.web}" target="_blank" rel="noopener">Ver la web del salón</a>
+  </div>
+  <p class="empty" style="margin-top:14px">La reserva online es la misma de nuestra web: eliges servicio, profesional, día y hora. Por WhatsApp te atendemos en el 665 122 755.</p>
+  ${tarjeta?'':`<div class="hero" style="margin-top:16px">${DECO}<b>¿Aún sin tarjeta?</b><p>Elige gratis Week, Color o Man y ahorra en tus visitas.</p><button class="btn light" data-go="tarjetas">Elegir mi tarjeta</button></div>`}`},
 tarjetas(){
   if(st.recep)return V.recepcion();
   if(!tarjeta){const a=st.alta||(st.alta={paso:0,tipo:null,n:'',t:''});
@@ -377,10 +362,10 @@ tarjetas(){
      <div class="choose">
       <button class="choice w" data-elige="week"><span class="who">Si vienes a peinarte</span><b>Tarjeta Week</b>Hasta un 20 % en todos tus servicios.<ul><li>Péinate cada semana: 20 %.</li><li>Cada 15 días: 10 %.</li></ul></button>
       <button class="choice c" data-elige="color"><span class="who">Si te haces el color</span><b>Tarjeta Color</b>Hasta un 20 % en todos tus servicios.<ul><li>Color cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>
-      <button class="choice b" data-elige="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>
+      <button class="choice b" data-elige="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte o degradado.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>
      </div><p class="empty">Week y Color: cuenta la semana o el mes de tu visita, no el día exacto. El descuento es en servicios, no en productos.</p>`;
     if(a.paso===1)return `<button class="back" data-alta="0">‹ Cambiar de tarjeta</button><div class="lcard ${a.tipo==='week'?'w':a.tipo==='color'?'c':'b'} pop">${DECO}<div class="name" style="position:relative">Has elegido</div><div class="title" style="font-size:32px;position:relative">Tarjeta ${NOMBRE[a.tipo]}</div>
-     <div class="msg">${a.tipo==='caballero'?'Un sello por cada corte. Con 10, el siguiente es gratis.':'Hasta un 20 % en todos tus servicios por venir con frecuencia.'}</div></div>
+     <div class="msg">${a.tipo==='caballero'?'Un sello por cada corte o degradado. Con 10, el siguiente corte es gratis.':'Hasta un 20 % en todos tus servicios por venir con frecuencia.'}</div></div>
      <form id="falta"><label for="an">Nombre</label><input id="an" autocomplete="name" required value="${esc(a.n)}">
      <label for="at">Teléfono móvil</label><input id="at" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" value="${esc(a.t)}">
      <label class="chk"><input type="checkbox" id="ap" required> Acepto la política de privacidad y recibir mis ventajas por WhatsApp</label>
@@ -394,7 +379,7 @@ tarjetas(){
     <p class="empty">Ahora tienes la <b>Tarjeta ${NOMBRE[tarjeta.tipo]}</b>. Elige la nueva:</p><div class="choose">${otras.map(t=>({
      week:'<button class="choice w" data-nueva="week"><span class="who">Si vienes a peinarte</span><b>Tarjeta Week</b>Hasta un 20 % en todos tus servicios.<ul><li>Péinate cada semana: 20 %.</li><li>Cada 15 días: 10 %.</li></ul></button>',
      color:'<button class="choice c" data-nueva="color"><span class="who">Si te haces el color</span><b>Tarjeta Color</b>Hasta un 20 % en todos tus servicios.<ul><li>Color cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>',
-     caballero:'<button class="choice b" data-nueva="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>'}[t])).join('')}</div>
+     caballero:'<button class="choice b" data-nueva="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte o degradado.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>'}[t])).join('')}</div>
     <p class="empty">Al cambiar, pierdes lo que llevas en la tarjeta actual y la nueva empieza desde cero. Tus puntos se mantienen.</p>`}
   const movs=tarjeta.movs.slice().reverse().slice(0,8),cab=tarjeta.tipo==='caballero';
   return `<h2>Mi tarjeta</h2>
@@ -411,7 +396,7 @@ recepcion(){
   const r=st.r||(st.r={cod:'',marca:false,gratis:false,precioCorte:'15',serv:'',prod:'',usar:false});
   if(!tarjeta)return `<button class="back" data-recep="0">‹ Volver</button><h2>Recepción</h2><p class="empty">Este cliente aún no tiene tarjeta. Actívala desde «Tarjeta» o, en la versión real, dándola de alta aquí con su teléfono.</p>`;
   const ok=r.cod.trim().toUpperCase()===tarjeta.cod,c=calcCobro(r),cab=tarjeta.tipo==='caballero';
-  const marcaTxt={week:'Lleva peinado · marca la visita de esta semana',color:'Lleva coloración · marca la visita de este mes',caballero:'Corte de caballero · suma 1 sello'}[tarjeta.tipo];
+  const marcaTxt={week:'Lleva peinado · marca la visita de esta semana',color:'Lleva coloración · marca la visita de este mes',caballero:'Corte o degradado · suma 1 sello'}[tarjeta.tipo];
   return `<button class="back" data-recep="0">‹ Volver a mi tarjeta</button><h2>Recepción</h2>
   <p class="empty">Pantalla del personal. En la versión real va aparte, con clave del salón, y lee el QR con la cámara.</p>
   <div class="staff">
@@ -440,7 +425,9 @@ salon(){
   return `<h2>${esc(s.nombre)}</h2>
   <div class="info"><div><span>Lunes a viernes</span><b>9:00 – 21:00</b></div><div><span>Sábados</span><b>9:00 – 16:00</b></div><div><span>Domingos y festivos</span><b>Cerrado</b></div><div><span>Barbero</span><b>${esc(s.barbero)}</b></div></div>
   <div class="links">
-   <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Cómo llegar</a>
+   <a class="btn" href="${s.reserva}" target="_blank" rel="noopener">Reservar online</a>
+   <a class="btn sec" href="${waLink(s)}" target="_blank" rel="noopener">Reservar por WhatsApp · 665 122 755</a>
+   <a class="btn sec" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Cómo llegar</a>
    <a class="btn sec" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Déjanos una reseña en Google</a>
    <a class="btn sec" href="https://www.instagram.com/${s.ig}/" target="_blank" rel="noopener">Síguenos en Instagram · @${s.ig}</a>
   </div>`}
@@ -486,7 +473,7 @@ function render(){
     else if(r.marca){if(t==='caballero'){tarjeta.sellos=(tarjeta.sellos||0)+1;sello='+1 sello'}else tarjeta[t].push(hoy)}
     tarjeta.puntos+=c.gana-c.pts;
     const res=[c.pct?'−'+c.pct+' %':'',sello,c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
-    tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Peinado',color:'Coloración',caballero:'Corte caballero'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
+    tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Peinado',color:'Coloración',caballero:'Corte / degradado'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
     store.set('tarjeta',tarjeta);toast('Cobro registrado · '+res);st.recep=false;st.r=null;render();$('main').scrollTop=0};
   const bo=$('borrar');if(bo)bo.onclick=()=>{tarjeta=null;store.set('tarjeta',null);st.alta=null;toast('Tarjeta borrada (prueba)');render()};
 
