@@ -329,10 +329,10 @@ inicio(){
   let tiles;
   if(!tarjeta)tiles=`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Elige tu tarjeta gratis: Week, Color o Man<small>Ventajas por venir con frecuencia</small></span></button>`;
   else if(tarjeta.tipo==='caballero')tiles=`<button class="tile" style="background:linear-gradient(135deg,#14161c,#4a5568)" data-go="tarjetas"><span class="pct">${Math.min(tarjeta.sellos||0,10)}/10</span><span>Man<small>${(tarjeta.sellos||0)>=10?'¡Corte gratis!':'Sellos para tu corte gratis'}</small></span></button>
-   <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)}</small></button>`;
+   <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)} en productos</small></button>`;
   else{const e=estado(tarjeta.tipo),w=tarjeta.tipo==='week';
    tiles=`<button class="tile ${w?'w':'c'}" data-go="tarjetas"><span class="pct">${e.pct} %</span><span>${NOMBRE[tarjeta.tipo]}<small>${e.pct===20?'Hasta el '+e.hasta20.replace('sábado ','sáb '):e.pct?'Sube al 20 % viniendo':(w?'Actívala esta semana':'Actívala este mes')}</small></span></button>
-   <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)}</small></button>`}
+   <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)} en productos</small></button>`}
   return `<div class="hero">${DECO}<b>${prox?'Tu próxima cita':'Tu momento de salón'}</b>
   <p>${prox?esc(prox.serv)+' · '+fecha(prox.dia)+' a las '+hm(prox.ini)+' · '+esc(SALONES.find(s=>s.id===prox.salon).nombre):'Reserva en menos de un minuto y mira tu precio con descuento antes de confirmar.'}</p>
   <button class="btn light" data-go="cita">${prox?'Ver mis citas':'Pedir cita'}</button></div>
@@ -389,15 +389,22 @@ tarjetas(){
     return `<button class="back" data-alta="1">‹ Volver</button><h2>Te hemos enviado un código</h2><p class="empty">Por WhatsApp al ${esc(a.t)}. En esta prueba, el código es 1234.</p>
      <form id="fcod"><label for="ac">Código</label><input id="ac" inputmode="numeric" autocomplete="one-time-code" maxlength="4" required>
      <button class="btn" type="submit" style="margin-top:12px">Confirmar</button></form>`}
+  if(st.cambio){const otras=['week','color','caballero'].filter(t=>t!==tarjeta.tipo);
+    return `<button class="back" data-cambiar="0">‹ Volver a mi tarjeta</button><h2>Cambiar de tarjeta</h2>
+    <p class="empty">Ahora tienes la <b>Tarjeta ${NOMBRE[tarjeta.tipo]}</b>. Elige la nueva:</p><div class="choose">${otras.map(t=>({
+     week:'<button class="choice w" data-nueva="week"><span class="who">Si vienes a peinarte</span><b>Tarjeta Week</b>Hasta un 20 % en todos tus servicios.<ul><li>Péinate cada semana: 20 %.</li><li>Cada 15 días: 10 %.</li></ul></button>',
+     color:'<button class="choice c" data-nueva="color"><span class="who">Si te haces el color</span><b>Tarjeta Color</b>Hasta un 20 % en todos tus servicios.<ul><li>Color cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>',
+     caballero:'<button class="choice b" data-nueva="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>'}[t])).join('')}</div>
+    <p class="empty">Al cambiar, pierdes lo que llevas en la tarjeta actual y la nueva empieza desde cero. Tus puntos se mantienen.</p>`}
   const movs=tarjeta.movs.slice().reverse().slice(0,8),cab=tarjeta.tipo==='caballero';
   return `<h2>Mi tarjeta</h2>
   <div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
   <div class="grid2" style="margin-bottom:14px"><button class="btn sec" data-inst="1">Guardar en el móvil</button><button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
   ${cab?sellosHtml():cardHtml(tarjeta.tipo)}
-  <div class="lcard p"><div class="top"><div><div class="name">${cab?'Productos':'Productos y visitas sin descuento'}</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} para gastar</small></div></div>
-  <ul class="rules"><li>${cab?'1 punto por cada euro en productos.':'1 punto por cada euro en productos, y en servicios cuando no tienes descuento.'}</li><li>100 puntos = 5 € de descuento.</li></ul></div>
+  <div class="lcard p"><div class="top"><div><div class="name">${cab?'Productos':'Productos y visitas sin descuento'}</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} en productos</small></div></div>
+  <ul class="rules"><li>${cab?'1 punto por cada euro en productos.':'1 punto por cada euro en productos, y en servicios cuando no tienes descuento.'}</li><li>100 puntos = 5 € para gastar <b>en productos</b>.</li></ul></div>
   ${movs.length?'<h3>Últimos movimientos</h3>'+movs.map(m=>`<div class="mov"><span>${esc(m.t)}<small>${fecha(m.f)} · ${esc(SALONES.find(x=>x.id===m.s).nombre)}</small></span><b>${esc(m.r)}</b></div>`).join(''):''}
-  <p class="empty">Solo se puede tener una tarjeta. Para cambiarla, pídelo en el salón.</p>
+  <button class="btn sec" data-cambiar="1" style="margin-top:8px">Cambiar de tarjeta</button><p class="empty">Solo se puede tener una tarjeta. Si la cambias, la nueva empieza desde cero.</p>
   <h3>Para el personal</h3><button class="btn sec" data-recep="1">Recepción: registrar un cobro</button>
   <p class="empty" style="margin-top:14px">Prueba: <button class="back" id="demoh">cargar un historial de ejemplo</button> · <button class="back" id="borrar">empezar de cero</button></p>`},
 recepcion(){
@@ -415,9 +422,9 @@ recepcion(){
    ${r.gratis?'':`<label class="chk"><input type="checkbox" id="rmarca" ${r.marca?'checked':''}> ${marcaTxt}</label>`}
    <label for="rserv">Total servicios (€)</label><input id="rserv" inputmode="decimal" value="${esc(r.serv)}" placeholder="Ej.: ${cab?'15':'54'}">
    <label for="rprod">Productos (€)</label><input id="rprod" inputmode="decimal" value="${esc(r.prod)}" placeholder="0">
-   <label class="chk"><input type="checkbox" id="rusar" ${r.usar?'checked':''} ${tarjeta.puntos>=100?'':'disabled'}> Gastar puntos (tiene ${tarjeta.puntos})</label>
+   <label class="chk"><input type="checkbox" id="rusar" ${r.usar?'checked':''} ${tarjeta.puntos>=100?'':'disabled'}> Gastar puntos en los productos (tiene ${tarjeta.puntos})</label>${r.usar&&!c.prod?'<p class="empty">Los puntos solo se pueden gastar en productos: pon el importe de productos.</p>':''}
    ${c.total?`<div class="sum"><div><span>Servicios</span><span>${eur(c.serv)}</span></div>${c.pct?`<div><span>Tarjeta ${NOMBRE[tarjeta.tipo]} ${c.pct} %</span><span>− ${eur(c.dto)}</span></div>`:''}${c.gratis?`<div><span>Corte gratis</span><span>− ${eur(c.dto)}</span></div>`:''}
-   ${c.prod?`<div><span>Productos</span><span>${eur(c.prod)}</span></div>`:''}${c.dpts?`<div><span>Puntos (${c.pts})</span><span>− ${eur(c.dpts)}</span></div>`:''}
+   ${c.prod?`<div><span>Productos</span><span>${eur(c.prod)}</span></div>`:''}${c.dpts?`<div><span>Puntos en productos (${c.pts})</span><span>− ${eur(c.dpts)}</span></div>`:''}
    <div class="tot"><span>A cobrar</span><span>${eur(c.cobrar)}</span></div>${c.gana?`<div><span>Puntos que gana</span><span>+${c.gana}</span></div>`:''}
    ${cab&&r.marca&&!r.gratis?`<div><span>Sellos</span><span>${(tarjeta.sellos||0)+1}/10</span></div>`:''}</div>
    <button class="btn" id="rok">Registrar cobro</button>`:''}`:''}
@@ -426,7 +433,7 @@ promos(){
   return `<h2>Promociones</h2>
   <div class="promo" style="background:var(--week)"><span class="tag">Del 1 al 24 de diciembre</span><b>Calendario de adviento</b><p>Cada día, una sorpresa distinta. Abre la casilla del día aquí y enséñala en el salón.</p></div>
   <div class="promo" style="background:var(--color)"><span class="tag">Todo el año</span><b>Tarjeta regalo</b><p>Regala un servicio a quien quieras. Se compra en el salón y se canjea desde la app.</p></div>
-  <div class="promo" style="background:var(--pts)"><span class="tag">Clientes</span><b>Trae a una amiga</b><p>Si viene por tu recomendación, las dos sumáis 100 puntos (5 €).</p></div>
+  <div class="promo" style="background:var(--pts)"><span class="tag">Clientes</span><b>Trae a una amiga</b><p>Si viene por tu recomendación, las dos sumáis 100 puntos (5 € en productos).</p></div>
   <p class="empty">Promociones de ejemplo: las reales las decides tú.</p>`},
 salon(){
   const s=salon(),q=encodeURIComponent(s.maps);
@@ -448,7 +455,7 @@ function calcCobro(r){
   const serv=n(r.serv),prod=n(r.prod),cab=tarjeta.tipo==='caballero',pct=cab?0:pctHoy();
   const gratis=cab&&r.gratis&&(tarjeta.sellos||0)>=10;
   const dto=gratis?Math.min(n(r.precioCorte),serv):serv*pct/100,antes=serv-dto+prod;
-  const dpts=r.usar&&tarjeta.puntos>=100?Math.min(Math.floor(tarjeta.puntos/20),Math.floor(antes)):0;
+  const dpts=r.usar&&tarjeta.puntos>=100?Math.min(Math.floor(tarjeta.puntos/20),Math.floor(prod)):0;// los puntos solo pagan productos
   const gana=Math.max(0,Math.floor((!cab&&!pct?serv:0)+prod-dpts));
   return {serv,prod,pct,gratis,dto,dpts,pts:dpts*20,cobrar:antes-dpts,gana,total:serv+prod}}
 
@@ -486,8 +493,19 @@ function render(){
 }
 
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
+  const b=e.target.closest('[data-cambiar],[data-nueva],[data-okcambio],[data-elige],[data-inst],[data-wallet],[data-so],[data-cerrar],[data-wok],[data-alta],[data-recep],[data-go],[data-fam],[data-serv],[data-dia],[data-hora],[data-paso],[data-cancel],[data-mover]');if(!b)return;
   const d=b.dataset;
+  if(d.cambiar){st.cambio=d.cambiar==='1';render();$('main').scrollTop=0;return}
+  if(d.nueva){const t=d.nueva,cab=tarjeta.tipo==='caballero',e=cab?null:estado(tarjeta.tipo);
+    const pierde=cab?((tarjeta.sellos||0)?`tus <b>${Math.min(tarjeta.sellos,10)} sellos</b>${tarjeta.sellos>=10?' y tu <b>corte gratis</b>':''}`:'tu tarjeta (aún sin sellos)')
+      :(e.pct?`tu <b>${e.pct} % de descuento</b> y tus visitas registradas`:'tus visitas registradas');
+    abrirSheet(`<h2 style="margin-top:0">¿Cambiar a la Tarjeta ${NOMBRE[t]}?</h2>
+     <div class="sum" style="background:#fff1e6;color:#7a3a10"><div style="display:block">Vas a perder ${pierde} de la <b>Tarjeta ${NOMBRE[tarjeta.tipo]}</b>. La nueva tarjeta empieza <b>desde cero</b> y no se puede deshacer.</div></div>
+     <p class="empty">Tus puntos para productos (${tarjeta.puntos}) se mantienen.</p>
+     <div class="grid2"><button class="btn sec" data-cerrar="1">Cancelar</button><button class="btn" data-okcambio="${t}">Sí, cambiar</button></div>`);return}
+  if(d.okcambio){const ant=NOMBRE[tarjeta.tipo];Object.assign(tarjeta,{tipo:d.okcambio,week:[],color:[],sellos:0});
+    tarjeta.movs.push({f:HOY(),s:st.salon,t:'Cambio de tarjeta: '+ant+' → '+NOMBRE[d.okcambio],r:'desde 0'});
+    store.set('tarjeta',tarjeta);st.cambio=false;cerrarSheet();toast('Ya tienes la Tarjeta '+NOMBRE[d.okcambio]);render();$('main').scrollTop=0;return}
   if(d.elige){st.alta.tipo=d.elige;st.alta.paso=1;render();$('main').scrollTop=0;return}
   if(d.inst){abrirInst(false);return}
   if(d.wallet){if(!tarjeta){cerrarSheet();go('tarjetas');toast('Primero activa tu tarjeta');return}abrirWallet();return}
@@ -496,7 +514,7 @@ document.addEventListener('click',e=>{
   if(d.wok){cerrarSheet();toast('Prueba: en la versión real queda guardada en tu cartera');return}
   if(d.alta){st.alta.paso=+d.alta;render();return}
   if(d.recep){st.recep=d.recep==='1';st.r=null;render();$('main').scrollTop=0;return}
-  if(d.go)return go(d.go);
+  if(d.go){st.cambio=false;return go(d.go)}
   if(d.fam){st.fam=d.fam;st.paso='servicio'}
   else if(d.serv){st.serv=+d.serv;st.dia=null;st.paso='hora'}
   else if(d.dia){st.dia=d.dia}
