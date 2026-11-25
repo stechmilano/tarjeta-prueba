@@ -307,19 +307,33 @@ try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.tes
 const SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 8l5-5 5 5M5 13v7h14v-7"/></svg>';
 const DOTS='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
 const WAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14h2"/></svg>';
-let instSO=/iphone|ipad|mac/i.test(navigator.userAgent)?'ios':'android';
+// Detecta el móvil y el navegador para enseñar solo sus pasos.
+const UA=navigator.userAgent||'';
+const DISP=(()=>{const ios=/iphone|ipad|ipod/i.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);
+  if(ios)return {so:'ios',nav:/CriOS/.test(UA)?'chrome':/FxiOS/.test(UA)?'firefox':/EdgiOS/.test(UA)?'edge':'safari'};
+  if(/android/i.test(UA))return {so:'android',nav:/SamsungBrowser/.test(UA)?'samsung':/Firefox/.test(UA)?'firefox':'chrome'};
+  return {so:'pc',nav:'otro'}})();
+let instSO=DISP.so==='ios'?'ios':'android';
+function pasosInstalar(){const d=DISP;
+  if(d.so==='ios'){
+    if(d.nav==='safari')return {t:'En tu iPhone, con Safari',p:[`Pulsa <span class="ico">${SHARE}</span> <b>Compartir</b>, en la barra de abajo.`,'Baja y elige <b>«Añadir a pantalla de inicio»</b>.','Pulsa <b>Añadir</b>, arriba a la derecha.']};
+    return {t:'En tu iPhone',p:[`Pulsa <span class="ico">${SHARE}</span> <b>Compartir</b>, ${d.nav==='chrome'?'arriba a la derecha, en la barra de la dirección':'en el menú del navegador'}.`,'Elige <b>«Añadir a pantalla de inicio»</b>.','Pulsa <b>Añadir</b>. Si no te sale la opción, abre este enlace en <b>Safari</b>.']}}
+  if(d.so==='android'){
+    if(d.nav==='samsung')return {t:'En tu Android, con Samsung Internet',p:['Pulsa <b>☰ el menú</b>, abajo a la derecha.','Elige <b>«Añadir página a»</b> → <b>«Pantalla de inicio»</b>.','Confirma con <b>Añadir</b>.']};
+    return {t:'En tu Android',p:[`Pulsa <span class="ico">${DOTS}</span> <b>el menú</b>, arriba a la derecha.`,'Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.','Confirma con <b>Instalar</b>.']}}
+  return {t:'Desde el ordenador',p:['Esta tarjeta está pensada para el móvil.','Abre en tu móvil el enlace que te llegó por correo, o escanea el QR del salón.']}}
 function abrirSheet(html){$('sheetc').innerHTML=html;$('sheet').classList.add('on')}
 function cerrarSheet(){$('sheet').classList.remove('on')}
 function abrirInst(nueva){
-  const ios=instSO==='ios';
-  if(promptInst){abrirSheet(`<h2 style="margin-top:0">${nueva?'¡Listo! Instálala en tu móvil':'Instala tu tarjeta'}</h2><p class="empty">Un toque y la tendrás en tu pantalla de inicio, como cualquier app.</p><button class="btn" data-instalar="1">Instalar con un toque</button><div class="wbtns"><button class="wbtn" data-wallet="1">${WAL} Añadir a Google Wallet</button></div><button class="btn sec" data-cerrar="1">Ahora no</button>`);return}
+  const ios=DISP.so==='ios',wallet=DISP.so==='pc'?'':`<p class="empty" style="margin-top:14px">O guárdala en la cartera de tu móvil:</p><div class="wbtns"><button class="wbtn" data-wallet="1">${WAL} Añadir a ${ios?'Apple Wallet':'Google Wallet'}</button></div>`;
+  if(instalada()){abrirSheet(`<h2 style="margin-top:0">Ya la tienes instalada ✓</h2><p class="empty">La encuentras en tu pantalla de inicio con el icono «Mi tarjeta».</p>${wallet}<button class="btn sec" data-cerrar="1">Cerrar</button>`);return}
+  if(promptInst){abrirSheet(`<h2 style="margin-top:0">${nueva?'¡Listo! Instálala en tu móvil':'Instala tu tarjeta'}</h2><p class="empty">Un toque y la tendrás en tu pantalla de inicio, como cualquier app.</p><button class="btn" data-instalar="1">Instalar con un toque</button>${wallet}<button class="btn sec" data-cerrar="1">Ahora no</button>`);return}
+  const P=pasosInstalar();
   abrirSheet(`<h2 style="margin-top:0">${nueva?'¡Listo! Guárdala en tu móvil':'Tenla siempre a mano'}</h2>
   <p class="empty">Así la abres con un toque, como cualquier app. No ocupa espacio ni hay que descargar nada.</p>
-  <div class="seg"><button class="${ios?'on':''}" data-so="ios">iPhone</button><button class="${ios?'':'on'}" data-so="android">Android</button></div>
-  <ol class="steps">${ios?`<li><span>Abre este enlace en <b>Safari</b>.</span></li><li><span>Pulsa <span class="ico">${SHARE}</span> <b>Compartir</b>, abajo en el centro.</span></li><li><span>Baja y elige <b>«Añadir a pantalla de inicio»</b>.</span></li><li><span>Pulsa <b>Añadir</b>. Ya tienes el icono de Marco Aldany.</span></li>`
-   :`<li><span>Abre este enlace en <b>Chrome</b>.</span></li><li><span>Pulsa <span class="ico">${DOTS}</span> <b>el menú</b>, arriba a la derecha.</span></li><li><span>Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.</span></li><li><span>Confirma. Ya tienes el icono de Marco Aldany.</span></li>`}</ol>
-  <p class="empty" style="margin-top:14px">O guárdala en la cartera de tu móvil:</p>
-  <div class="wbtns"><button class="wbtn" data-wallet="1">${WAL} Añadir a ${ios?'Apple Wallet':'Google Wallet'}</button></div>
+  <p style="font-weight:800;margin:12px 0 4px">${P.t}</p>
+  <ol class="steps">${P.p.map(x=>`<li><span>${x}</span></li>`).join('')}</ol>
+  ${wallet}
   <button class="btn sec" data-cerrar="1">Ahora no</button>`)}
 function abrirWallet(){
   const ios=instSO==='ios',pc=tarjeta?pctHoy():0,nom=tarjeta&&tarjeta.nombre?tarjeta.nombre:'Cliente';
@@ -445,7 +459,7 @@ tarjetas(){
   return `<h2>Mi tarjeta</h2>
   ${tarjeta.validada===false?'<div class="sum" style="margin-top:0">Tarjeta activa. Se valida en tu primera visita al salón, al escanearla.</div>':''}<div class="qrbox"><div class="qr" id="qr">${tarjeta.cod}</div><div><b>${tarjeta.cod}</b><p>${cab?'Enséñalo al pagar y suma tu sello.':'Enséñalo al pagar y se aplica tu descuento solo.'}</p></div></div>
   <div class="bar"><svg id="bc"></svg></div>
-  <div class="grid2" style="margin-bottom:14px">${instalada()?'<button class="btn sec" disabled>Ya la tienes instalada ✓</button>':`<button class="btn sec" data-instalar="1">${promptInst?'Instalar con un toque':'Guardar en el móvil'}</button>`}<button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
+  <div class="grid2" style="margin-bottom:14px">${instalada()?'<button class="btn sec" disabled>Ya la tienes instalada ✓</button>':`<button class="btn sec" data-instalar="1">${promptInst?'Instalar con un toque':DISP.so==='ios'?'Añadir a pantalla de inicio':DISP.so==='android'?'Instalar app':'Guardar en el móvil'}</button>`}<button class="btn sec" data-wallet="1">Añadir a la cartera</button></div>
   ${cab?sellosHtml():cardHtml(tarjeta.tipo)}
   <div class="lcard p"><div class="top"><div><div class="name">Según lo que gastas en cada visita</div><div class="title">Puntos</div></div><div class="pct">${tarjeta.puntos}<small>= ${eur(tarjeta.puntos*0.05)} en productos</small></div></div>
   <ul class="rules"><li>En cada visita sumas puntos según lo que gastes: por ejemplo, de 20 a 30 €, 20 puntos; de 40 a 50 €, 40 puntos.</li><li>100 puntos = 5 € para gastar <b>en productos</b>.</li><li>Se reinician el <b>${fechaLarga(proxReinicio(tarjeta.alta||HOY(),HOY()))}</b>: úsalos antes.</li></ul></div>
