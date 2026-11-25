@@ -162,7 +162,7 @@ input,.sel{width:100%;font:16px Manrope,sans-serif;padding:12px;border-radius:12
     <nav id="nav"></nav>
   </div>
   <div class="notes">
-    <h1>Tarjetas Week, Color y Man, en el móvil del cliente</h1>
+    <h1>Tarjetas Week, Color &amp; Cut y Man, en el móvil del cliente</h1>
     <p>El cliente ve en todo momento qué descuento tiene y hasta qué día lo mantiene. Eso es lo que le hace volver.</p>
     <p>Prueba: en «Tarjeta» elige una de las tres y actívala; en «Cita» se reserva en vuestra web o por WhatsApp; registra un cobro desde «Recepción».</p>
     <p>Semanas de lunes a domingo y meses naturales: cuenta la semana o el mes de la visita, no el día exacto.</p>
@@ -227,7 +227,7 @@ const lunesDe=i=>new Date(LUNES0+i*7*864e5+12*36e5);
 const TARJ={
  week:{nombre:'Tarjeta Week',sub:'Peinados',idx:semIdx,ud:'esta semana',
    fin:i=>{const d=lunesDe(i);d.setUTCDate(d.getUTCDate()+5);return 'sábado '+d.getUTCDate()+' de '+MESL[d.getUTCMonth()]}},
- color:{nombre:'Tarjeta Color',sub:'Coloración',idx:mesIdx,ud:'este mes',
+ color:{nombre:'Tarjeta Color & Cut',sub:'Color y corte',idx:mesIdx,ud:'este mes',
    fin:i=>{const y=Math.floor(i/12),m=i%12,d=new Date(y,m+1,0);return d.getDate()+' de '+MESL[m]}}};
 function estado(tipo){
   const T=TARJ[tipo],vis=tarjeta&&tarjeta.tipo===tipo?tarjeta[tipo]:[];if(!vis.length)return {pct:0,ult:null};
@@ -298,7 +298,7 @@ function huecos(dia,min){
 function pctEn(serv,dia){
   if(!tarjeta||!TARJ[tarjeta.tipo])return 0;const tipo=tarjeta.tipo,T=TARJ[tipo],vis=tarjeta[tipo].filter(v=>v<=dia);if(!vis.length)return 0;
   const dif=T.idx(dia)-T.idx(vis.sort().pop());return dif<=1?20:dif===2?10:0}
-const NOMBRE={week:'Week',color:'Color',caballero:'Man'};
+const NOMBRE={week:'Week',color:'Color & Cut',caballero:'Man'};
 const STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"/></svg>';
 const GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>';
 function sellosHtml(){const n=tarjeta.sellos||0,lleno=n>=10;
@@ -321,14 +321,14 @@ function cardHtml(tipo){
   else if(e.pct===10)msg=`Tienes el 10 % hasta el <b>${e.hasta10}</b>. Ven y vuelves a subir al 20 %.`;
   else msg=`Ven ${T.ud} y activa tu tarjeta: desde tu próxima visita tendrás descuento.`;
   return `<div class="lcard ${tipo==='week'?'w':'c'} pop">${DECO}
-   <div class="top"><div><div class="name">${T.sub}</div><div class="title">${T.nombre}</div></div><div class="pct">${e.pct} %<small>tu descuento ${tipo==='week'?'esta semana':'este mes'}</small></div></div>
+   <div class="top"><div><div class="name">${T.sub}</div><div class="title">${T.nombre}</div></div><div class="pct">${e.pct} %<small>${tipo==='week'?'tu descuento esta semana':'en tu color o corte este mes'}</small></div></div>
    <div class="msg">${msg}</div>${trackHtml(tipo)}
-   <ul class="rules">${tipo==='week'?'<li>Péinate cada semana: 20 % en todos tus servicios.</li><li>Cada 15 días: 10 %.</li>':'<li>Haz tu color cada mes: 20 % en todos tus servicios.</li><li>Cada 2 meses: 10 %.</li>'}<li>Cuenta ${tipo==='week'?'la semana':'el mes'}, no el día exacto. La visita se marca sola al pagar en el salón.</li></ul></div>`}
+   <ul class="rules">${tipo==='week'?'<li>Péinate cada semana: 20 % en todos tus servicios.</li><li>Cada 15 días: 10 %.</li>':'<li>Color o corte cada mes: 20 % en todos tus servicios.</li><li>Cada 2 meses: 10 %.</li><li>El descuento se aplica solo el día que te haces color o corte.</li>'}<li>Cuenta ${tipo==='week'?'la semana':'el mes'}, no el día exacto. La visita se marca sola al pagar en el salón.</li></ul></div>`}
 
 const V={
 inicio(){
   let tiles;
-  if(!tarjeta)tiles=`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Elige tu tarjeta gratis: Week, Color o Man<small>Ventajas por venir con frecuencia</small></span></button>`;
+  if(!tarjeta)tiles=`<button class="tile w" data-go="tarjetas" style="grid-column:1/-1"><span class="pct">Hasta 20 %</span><span>Elige tu tarjeta gratis: Week, Color &amp; Cut o Man<small>Ventajas por venir con frecuencia</small></span></button>`;
   else if(tarjeta.tipo==='caballero')tiles=`<button class="tile" style="background:linear-gradient(135deg,#14161c,#4a5568)" data-go="tarjetas"><span class="pct">${Math.min(tarjeta.sellos||0,10)}/10</span><span>Man<small>${(tarjeta.sellos||0)>=10?'¡Corte gratis!':'Sellos para tu corte gratis'}</small></span></button>
    <button class="tile plain" data-go="tarjetas">${tarjeta.puntos} puntos<small>= ${eur(tarjeta.puntos*.05)} en productos</small></button>`;
   else{const e=estado(tarjeta.tipo),w=tarjeta.tipo==='week';
@@ -345,7 +345,7 @@ inicio(){
 cita(){
   const s=salon();let ventaja='';
   if(tarjeta){if(tarjeta.tipo==='caballero'){const n=tarjeta.sellos||0;ventaja=n>=10?'Tienes un <b>corte gratis</b> con tu Tarjeta Man: dilo al pagar.':`Tu Tarjeta Man lleva <b>${n}/10 sellos</b>: cada corte o degradado suma uno.`}
-    else{const e=estado(tarjeta.tipo);ventaja=e.pct?`Con tu Tarjeta ${NOMBRE[tarjeta.tipo]} tienes un <b>${e.pct} %</b> en todos tus servicios si vienes antes del <b>${e.pct===20?e.hasta20:e.hasta10}</b>.`:`Con tu Tarjeta ${NOMBRE[tarjeta.tipo]}, esta visita activa tu descuento para la próxima.`}}
+    else{const e=estado(tarjeta.tipo);ventaja=e.pct?`Con tu Tarjeta ${NOMBRE[tarjeta.tipo]} tienes un <b>${e.pct} %</b> en todos tus servicios${tarjeta.tipo==='color'?' <b>el día que te hagas color o corte</b>':''} si vienes antes del <b>${e.pct===20?e.hasta20:e.hasta10}</b>.`:`Con tu Tarjeta ${NOMBRE[tarjeta.tipo]}, esta visita activa tu descuento para la próxima.`}}
   return `<h2>Pedir cita</h2><p class="empty">${esc(s.nombre)} · Elige cómo prefieres reservar.</p>
   ${ventaja?`<div class="sum" style="margin-top:0">${ventaja}<br><span class="empty" style="font-size:13px">El descuento se aplica al pagar en el salón.</span></div>`:''}
   <div class="links">
@@ -354,16 +354,16 @@ cita(){
    <a class="btn sec" href="${s.web}" target="_blank" rel="noopener">Ver la web del salón</a>
   </div>
   <p class="empty" style="margin-top:14px">La reserva online es la misma de nuestra web: eliges servicio, profesional, día y hora. Por WhatsApp te atendemos en el 665 122 755.</p>
-  ${tarjeta?'':`<div class="hero" style="margin-top:16px">${DECO}<b>¿Aún sin tarjeta?</b><p>Elige gratis Week, Color o Man y ahorra en tus visitas.</p><button class="btn light" data-go="tarjetas">Elegir mi tarjeta</button></div>`}`},
+  ${tarjeta?'':`<div class="hero" style="margin-top:16px">${DECO}<b>¿Aún sin tarjeta?</b><p>Elige gratis Week, Color &amp; Cut o Man y ahorra en tus visitas.</p><button class="btn light" data-go="tarjetas">Elegir mi tarjeta</button></div>`}`},
 tarjetas(){
   if(st.recep)return V.recepcion();
   if(!tarjeta){const a=st.alta||(st.alta={paso:0,tipo:null,n:'',t:''});
     if(a.paso===0)return `<h2>Elige tu tarjeta</h2><p class="empty">${esc(salon().nombre)} · Es gratis. Elige la que más te encaje: solo se puede tener una.</p>
      <div class="choose">
       <button class="choice w" data-elige="week"><span class="who">Si vienes a peinarte</span><b>Tarjeta Week</b>Hasta un 20 % en todos tus servicios.<ul><li>Péinate cada semana: 20 %.</li><li>Cada 15 días: 10 %.</li></ul></button>
-      <button class="choice c" data-elige="color"><span class="who">Si te haces el color</span><b>Tarjeta Color</b>Hasta un 20 % en todos tus servicios.<ul><li>Color cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>
+      <button class="choice c" data-elige="color"><span class="who">Si te haces color o corte</span><b>Tarjeta Color &amp; Cut</b>Hasta un 20 % en todos tus servicios el día que te haces color o corte.<ul><li>Color o corte cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>
       <button class="choice b" data-elige="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte o degradado.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>
-     </div><p class="empty">Week y Color: cuenta la semana o el mes de tu visita, no el día exacto. El descuento es en servicios, no en productos.</p>`;
+     </div><p class="empty">Week y Color &amp; Cut: cuenta la semana o el mes de tu visita, no el día exacto. El descuento es en servicios, no en productos.</p>`;
     if(a.paso===1)return `<button class="back" data-alta="0">‹ Cambiar de tarjeta</button><div class="lcard ${a.tipo==='week'?'w':a.tipo==='color'?'c':'b'} pop">${DECO}<div class="name" style="position:relative">Has elegido</div><div class="title" style="font-size:32px;position:relative">Tarjeta ${NOMBRE[a.tipo]}</div>
      <div class="msg">${a.tipo==='caballero'?'Un sello por cada corte o degradado. Con 10, el siguiente corte es gratis.':'Hasta un 20 % en todos tus servicios por venir con frecuencia.'}</div></div>
      <form id="falta"><label for="an">Nombre</label><input id="an" autocomplete="name" required value="${esc(a.n)}">
@@ -378,7 +378,7 @@ tarjetas(){
     return `<button class="back" data-cambiar="0">‹ Volver a mi tarjeta</button><h2>Cambiar de tarjeta</h2>
     <p class="empty">Ahora tienes la <b>Tarjeta ${NOMBRE[tarjeta.tipo]}</b>. Elige la nueva:</p><div class="choose">${otras.map(t=>({
      week:'<button class="choice w" data-nueva="week"><span class="who">Si vienes a peinarte</span><b>Tarjeta Week</b>Hasta un 20 % en todos tus servicios.<ul><li>Péinate cada semana: 20 %.</li><li>Cada 15 días: 10 %.</li></ul></button>',
-     color:'<button class="choice c" data-nueva="color"><span class="who">Si te haces el color</span><b>Tarjeta Color</b>Hasta un 20 % en todos tus servicios.<ul><li>Color cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>',
+     color:'<button class="choice c" data-nueva="color"><span class="who">Si te haces color o corte</span><b>Tarjeta Color &amp; Cut</b>Hasta un 20 % en todos tus servicios el día que te haces color o corte.<ul><li>Color o corte cada mes: 20 %.</li><li>Cada 2 meses: 10 %.</li></ul></button>',
      caballero:'<button class="choice b" data-nueva="caballero"><span class="who">Solo caballeros</span><b>Tarjeta Man</b>Un sello por cada corte o degradado.<ul><li>Con 10 sellos, tu siguiente corte es gratis.</li></ul></button>'}[t])).join('')}</div>
     <p class="empty">Al cambiar, pierdes lo que llevas en la tarjeta actual y la nueva empieza desde cero. Tus puntos se mantienen.</p>`}
   const movs=tarjeta.movs.slice().reverse().slice(0,8),cab=tarjeta.tipo==='caballero';
@@ -396,7 +396,7 @@ recepcion(){
   const r=st.r||(st.r={cod:'',marca:false,gratis:false,precioCorte:'15',serv:'',prod:'',usar:false});
   if(!tarjeta)return `<button class="back" data-recep="0">‹ Volver</button><h2>Recepción</h2><p class="empty">Este cliente aún no tiene tarjeta. Actívala desde «Tarjeta» o, en la versión real, dándola de alta aquí con su teléfono.</p>`;
   const ok=r.cod.trim().toUpperCase()===tarjeta.cod,c=calcCobro(r),cab=tarjeta.tipo==='caballero';
-  const marcaTxt={week:'Lleva peinado · marca la visita de esta semana',color:'Lleva coloración · marca la visita de este mes',caballero:'Corte o degradado · suma 1 sello'}[tarjeta.tipo];
+  const marcaTxt={week:'Lleva peinado · marca la visita de esta semana',color:'Lleva color o corte · aplica el descuento y marca la visita del mes',caballero:'Corte o degradado · suma 1 sello'}[tarjeta.tipo];
   return `<button class="back" data-recep="0">‹ Volver a mi tarjeta</button><h2>Recepción</h2>
   <p class="empty">Pantalla del personal. En la versión real va aparte, con clave del salón, y lee el QR con la cámara.</p>
   <div class="staff">
@@ -404,7 +404,7 @@ recepcion(){
    ${r.cod&&!ok?'<p class="empty">No encuentro esa tarjeta.</p>':''}
    ${ok?`<div class="sum"><div><span>Tarjeta</span><span>${NOMBRE[tarjeta.tipo]}</span></div><div><span>${cab?'Sellos':'Descuento hoy'}</span><span>${cab?Math.min(tarjeta.sellos||0,10)+'/10':pctHoy()+' %'}</span></div><div><span>Puntos</span><span>${tarjeta.puntos}</span></div></div>
    ${cab&&(tarjeta.sellos||0)>=10?`<label class="chk"><input type="checkbox" id="rgratis" ${r.gratis?'checked':''}> Canjear el corte gratis</label>${r.gratis?`<label for="rpc">Precio del corte (€)</label><input id="rpc" inputmode="decimal" value="${esc(r.precioCorte)}">`:''}`:''}
-   ${r.gratis?'':`<label class="chk"><input type="checkbox" id="rmarca" ${r.marca?'checked':''}> ${marcaTxt}</label>`}
+   ${r.gratis?'':`<label class="chk"><input type="checkbox" id="rmarca" ${r.marca?'checked':''}> ${marcaTxt}</label>`}${tarjeta.tipo==='color'&&!r.marca&&pctHoy()?'<p class="empty">Sin color ni corte hoy no hay descuento de la Color &amp; Cut.</p>':''}
    <label for="rserv">Total servicios (€)</label><input id="rserv" inputmode="decimal" value="${esc(r.serv)}" placeholder="Ej.: ${cab?'15':'54'}">
    <label for="rprod">Productos (€)</label><input id="rprod" inputmode="decimal" value="${esc(r.prod)}" placeholder="0">
    <label class="chk"><input type="checkbox" id="rusar" ${r.usar?'checked':''} ${tarjeta.puntos>=100?'':'disabled'}> Gastar puntos en los productos (tiene ${tarjeta.puntos})</label>${r.usar&&!c.prod?'<p class="empty">Los puntos solo se pueden gastar en productos: pon el importe de productos.</p>':''}
@@ -439,7 +439,7 @@ salon(){
 // Puntos: productos siempre; servicios solo en Week/Color cuando ese día no hay descuento.
 function calcCobro(r){
   const n=v=>Math.max(0,parseFloat(String(v).replace(',','.'))||0);
-  const serv=n(r.serv),prod=n(r.prod),cab=tarjeta.tipo==='caballero',pct=cab?0:pctHoy();
+  const serv=n(r.serv),prod=n(r.prod),cab=tarjeta.tipo==='caballero',pct=cab||(tarjeta.tipo==='color'&&!r.marca)?0:pctHoy();// Color & Cut: solo el día que hay color o corte
   const gratis=cab&&r.gratis&&(tarjeta.sellos||0)>=10;
   const dto=gratis?Math.min(n(r.precioCorte),serv):serv*pct/100,antes=serv-dto+prod;
   const dpts=r.usar&&tarjeta.puntos>=100?Math.min(Math.floor(tarjeta.puntos/20),Math.floor(prod)):0;// los puntos solo pagan productos
@@ -473,7 +473,7 @@ function render(){
     else if(r.marca){if(t==='caballero'){tarjeta.sellos=(tarjeta.sellos||0)+1;sello='+1 sello'}else tarjeta[t].push(hoy)}
     tarjeta.puntos+=c.gana-c.pts;
     const res=[c.pct?'−'+c.pct+' %':'',sello,c.pts?'−'+c.pts+' pts':'',c.gana?'+'+c.gana+' pts':''].filter(Boolean).join(' · ')||'sin descuento';
-    tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Peinado',color:'Coloración',caballero:'Corte / degradado'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
+    tarjeta.movs.push({f:hoy,s:st.salon,t:(c.gratis?'Corte gratis':r.marca?{week:'Peinado',color:'Color / corte',caballero:'Corte / degradado'}[t]:'Visita')+' · '+eur(c.cobrar),r:res});
     store.set('tarjeta',tarjeta);toast('Cobro registrado · '+res);st.recep=false;st.r=null;render();$('main').scrollTop=0};
   const bo=$('borrar');if(bo)bo.onclick=()=>{tarjeta=null;store.set('tarjeta',null);st.alta=null;toast('Tarjeta borrada (prueba)');render()};
 
